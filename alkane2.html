@@ -151,12 +151,29 @@
         margin: 0 0 8px;
       }
       .win-screen p { margin: 0; font-size: 15px; color: #6b6456; }
+      .win-screen .stats {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 12px;
+      }
+      .win-screen .stat {
+        font-size: 14px;
+      }
+      .win-screen .stat-label {
+        color: #999;
+      }
+      .win-screen .stat-value {
+        font-weight: 700;
+        color: #E4572E;
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
       <h1>🎈 記憶配對遊戲 Memory Match</h1>
-      <p class="subtitle">找出烷類分子的中英文名稱配對！</p>
+      <p class="subtitle">找出烷類化學式及名稱配對！</p>
 
       <div class="bar">
         <div class="pill">
@@ -166,7 +183,11 @@
         <div class="pill">
           ✅ 配對成功：
           <span id="matches">0</span>
-          / 8
+          / 6
+        </div>
+        <div class="pill">
+          ⏱ 遊戲時長：
+          <span id="timer">0:00</span>
         </div>
         <button class="restart" onclick="startGame()">重新開始</button>
       </div>
@@ -175,123 +196,160 @@
 
       <div class="win-screen" id="winScreen">
         <h2>🎉 太棒了！全部配對成功！</h2>
-        <p>
-          總共翻了
-          <span id="finalMoves"></span>
-          次牌，你好厲害！
-        </p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">翻牌次數</div>
+            <div class="stat-value">
+              <span id="finalMoves">0</span>
+              次
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">遊戲時長</div>
+            <div class="stat-value"><span id="finalTime">0:00</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script>
       const pairs = [
-        { id: 'pair1',  base: 'Methane',  past: '甲烷' },
-        { id: 'pair2',  base: 'Ethane',   past: '乙烷' },
-        { id: 'pair3',  base: 'Propane',  past: '丙烷' },
-        { id: 'pair4',  base: 'Butane',   past: '丁烷' },
-        { id: 'pair5',  base: 'Pentane',  past: '戊烷' },
-        { id: 'pair6',  base: 'Hexane',   past: '己烷' },
-      ];
+        { id: 'pair1',  base: 'C₈H₁₈',    past: 'Octane' },
+        { id: 'pair2',  base: 'C₂H₆',     past: 'Ethane' },
+        { id: 'pair3',  base: 'C₉H₂₀',    past: 'Nonane' },
+        { id: 'pair4',  base: 'C₆H₁₄',    past: 'Hexane' },
+        { id: 'pair5',  base: 'C₁₁H₂₄',   past: 'Undecane' },
+        { id: 'pair6',  base: 'C₄H₁₀',    past: 'Butane' },
+      ];;
+                  let board = document.getElementById('board');
+                  let movesEl = document.getElementById('moves');
+                  let matchesEl = document.getElementById('matches');
+                  let timerEl = document.getElementById('timer');
+                  let winScreen = document.getElementById('winScreen');
+                  let finalMoves = document.getElementById('finalMoves');
+                  let finalTime = document.getElementById('finalTime');
 
-      let board = document.getElementById('board');
-      let movesEl = document.getElementById('moves');
-      let matchesEl = document.getElementById('matches');
-      let winScreen = document.getElementById('winScreen');
-      let finalMoves = document.getElementById('finalMoves');
+                  let flipped = [];
+                  let lock = false;
+                  let moves = 0;
+                  let matches = 0;
+                  let startTime = null;
+                  let timerInterval = null;
 
-      let flipped = [];
-      let lock = false;
-      let moves = 0;
-      let matches = 0;
+                  function shuffle(arr) {
+                    for (let i = arr.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    return arr;
+                  }
 
-      function shuffle(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-      }
+                  function formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return mins + ':' + (secs < 10 ? '0' : '') + secs;
+                  }
 
-      function startGame() {
-        moves = 0;
-        matches = 0;
-        flipped = [];
-        lock = false;
-        movesEl.textContent = 0;
-        matchesEl.textContent = 0;
-        winScreen.classList.remove('show');
+                  function startTimer() {
+                    startTime = Date.now();
+                    if (timerInterval) clearInterval(timerInterval);
 
-        let cards = [];
-        pairs.forEach(p => {
-          cards.push({ pairId: p.id, type: 'base', content: p.base });
-          cards.push({ pairId: p.id, type: 'past', content: p.past });
-        });
-        cards = shuffle(cards);
+                    timerInterval = setInterval(() => {
+                      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                      timerEl.textContent = formatTime(elapsed);
+                    }, 1000);
+                  }
 
-        board.innerHTML = '';
-        cards.forEach((c, idx) => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.dataset.pairId = c.pairId;
-          card.dataset.index = idx;
+                  function stopTimer() {
+                    if (timerInterval) clearInterval(timerInterval);
+                  }
 
-          const inner = document.createElement('div');
-          inner.className = 'card-inner';
+                  function startGame() {
+                    moves = 0;
+                    matches = 0;
+                    flipped = [];
+                    lock = false;
+                    movesEl.textContent = 0;
+                    matchesEl.textContent = 0;
+                    timerEl.textContent = '0:00';
+                    winScreen.classList.remove('show');
+                    stopTimer();
+                    startTimer();
 
-          const back = document.createElement('div');
-          back.className = 'face back';
+                    let cards = [];
+                    pairs.forEach(p => {
+                      cards.push({ pairId: p.id, type: 'base', content: p.base });
+                      cards.push({ pairId: p.id, type: 'past', content: p.past });
+                    });
+                    cards = shuffle(cards);
 
-          const front = document.createElement('div');
-          front.className = 'face front';
-          front.innerHTML = '<div class="word">' + c.content + '</div>';
+                    board.innerHTML = '';
+                    cards.forEach((c, idx) => {
+                      const card = document.createElement('div');
+                      card.className = 'card';
+                      card.dataset.pairId = c.pairId;
+                      card.dataset.index = idx;
 
-          inner.appendChild(back);
-          inner.appendChild(front);
-          card.appendChild(inner);
-          card.addEventListener('click', () => onCardClick(card));
-          board.appendChild(card);
-        });
-      }
+                      const inner = document.createElement('div');
+                      inner.className = 'card-inner';
 
-      function onCardClick(card) {
-        if (lock) return;
-        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        if (flipped.length === 2) return;
+                      const back = document.createElement('div');
+                      back.className = 'face back';
 
-        card.classList.add('flipped');
-        flipped.push(card);
+                      const front = document.createElement('div');
+                      front.className = 'face front';
+                      front.innerHTML = '<div class="word">' + c.content + '</div>';
 
-        if (flipped.length === 2) {
-          moves++;
-          movesEl.textContent = moves;
-          const [a, b] = flipped;
-          if (a.dataset.pairId === b.dataset.pairId) {
-            lock = true;
-            setTimeout(() => {
-              a.classList.add('matched');
-              b.classList.add('matched');
-              matches++;
-              matchesEl.textContent = matches;
-              flipped = [];
-              lock = false;
-              if (matches === pairs.length) {
-                finalMoves.textContent = moves;
-                winScreen.classList.add('show');
-              }
-            }, 350);
-          } else {
-            lock = true;
-            setTimeout(() => {
-              a.classList.remove('flipped');
-              b.classList.remove('flipped');
-              flipped = [];
-              lock = false;
-            }, 800);
-          }
-        }
-      }
+                      inner.appendChild(back);
+                      inner.appendChild(front);
+                      card.appendChild(inner);
+                      card.addEventListener('click', () => onCardClick(card));
+                      board.appendChild(card);
+                    });
+                  }
 
-      startGame();
+                  function onCardClick(card) {
+                    if (lock) return;
+                    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                    if (flipped.length === 2) return;
+
+                    card.classList.add('flipped');
+                    flipped.push(card);
+
+                    if (flipped.length === 2) {
+                      moves++;
+                      movesEl.textContent = moves;
+                      const [a, b] = flipped;
+                      if (a.dataset.pairId === b.dataset.pairId) {
+                        lock = true;
+                        setTimeout(() => {
+                          a.classList.add('matched');
+                          b.classList.add('matched');
+                          matches++;
+                          matchesEl.textContent = matches;
+                          flipped = [];
+                          lock = false;
+                          if (matches === pairs.length) {
+                            stopTimer();
+                            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                            finalMoves.textContent = moves;
+                            finalTime.textContent = formatTime(elapsed);
+                            winScreen.classList.add('show');
+                          }
+                        }, 350);
+                      } else {
+                        lock = true;
+                        setTimeout(() => {
+                          a.classList.remove('flipped');
+                          b.classList.remove('flipped');
+                          flipped = [];
+                          lock = false;
+                        }, 800);
+                      }
+                    }
+                  }
+
+                  startGame();
     </script>
   </body>
 </html>
