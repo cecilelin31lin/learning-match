@@ -13,6 +13,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
         color: #2B3A55;
         min-height: 100vh;
+        user-select: none;
       }
       .wrap { max-width: 680px; margin: 0 auto; }
       h1 {
@@ -88,9 +89,15 @@
         padding: 12px;
         font-size: 14px;
         color: #2B3A55;
-        cursor: move;
+        cursor: grab;
         transition: all 0.2s;
-        user-select: none;
+        touch-action: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .item:active {
+        cursor: grabbing;
       }
       .item:hover {
         border-color: #999;
@@ -99,9 +106,17 @@
       .item.dragging {
         opacity: 0.6;
         background: #f0f0f0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       }
       .item.drag-over {
         border: 2px dashed #378ADD;
+        background: #f0f8ff;
+      }
+
+      .item-handle {
+        color: #999;
+        font-size: 16px;
+        margin-left: 12px;
       }
 
       .button-group {
@@ -289,11 +304,20 @@
           div.draggable = true;
           div.dataset.value = item;
 
+          // 加上拖曳手柄
+          div.innerHTML = `<span>${item}</span><span class="item-handle">≡</span>`;
+
+          // 滑鼠事件
           div.addEventListener('dragstart', handleDragStart);
           div.addEventListener('dragend', handleDragEnd);
           div.addEventListener('dragover', handleDragOver);
           div.addEventListener('drop', handleDrop);
           div.addEventListener('dragleave', handleDragLeave);
+
+          // 觸控事件
+          div.addEventListener('touchstart', handleTouchStart);
+          div.addEventListener('touchmove', handleTouchMove);
+          div.addEventListener('touchend', handleTouchEnd);
 
           itemsContainer.appendChild(div);
         });
@@ -338,6 +362,39 @@
           } else {
             this.parentNode.insertBefore(draggedElement, this);
           }
+        }
+      }
+
+      // 觸控拖曳
+      function handleTouchStart(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+      }
+
+      function handleTouchMove(e) {
+        if (!draggedElement) return;
+        
+        const touch = e.touches[0];
+        const allItems = Array.from(document.querySelectorAll('.item'));
+        
+        allItems.forEach(item => {
+          if (item === draggedElement) return;
+          
+          const rect = item.getBoundingClientRect();
+          const midpoint = rect.top + rect.height / 2;
+          
+          if (touch.clientY < midpoint) {
+            item.parentNode.insertBefore(draggedElement, item);
+          } else if (touch.clientY > midpoint) {
+            item.parentNode.insertBefore(draggedElement, item.nextSibling);
+          }
+        });
+      }
+
+      function handleTouchEnd(e) {
+        if (draggedElement) {
+          draggedElement.classList.remove('dragging');
+          draggedElement = null;
         }
       }
 
