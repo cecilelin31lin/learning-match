@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>是非題遊戲</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 60px;
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
+    color: #2B3A55;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    color: #2B3A55;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+  }
+  
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2B3A55;
+  }
+  .stat-value.success { color: #4CAF7D; }
+  .stat-value.danger { color: #E24B4A; }
+  
+  .question-container {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .question-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2B3A55;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-true {
+    background: #4CAF7D;
+    color: white;
+  }
+  .btn-true:hover {
+    background: #3d8a68;
+  }
+  
+  .btn-false {
+    background: #E24B4A;
+    color: white;
+  }
+  .btn-false:hover {
+    background: #c73a39;
+  }
+  
+  .feedback {
+    display: none;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 500;
+  }
+  .feedback.show {
+    display: block;
+  }
+  .feedback.success {
+    background: #E8F9EF;
+    border: 0.5px solid #4CAF7D;
+    color: #2B6E4F;
+  }
+  .feedback.error {
+    background: #FDE8E8;
+    border: 0.5px solid #E24B4A;
+    color: #8B2323;
+  }
+  
+  .next-button {
+    display: none;
+    background: #378ADD;
+    color: white;
+  }
+  .next-button:hover {
+    background: #2970c7;
+  }
+  
+  .result-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .result-overlay.show {
+    display: flex;
+  }
+  
+  .result-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .result-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2B3A55;
+    margin-bottom: 20px;
+  }
+  
+  .result-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .result-stat {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .result-stat-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  
+  .result-stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2B3A55;
+  }
+  .result-stat-value.success { color: #4CAF7D; }
+  .result-stat-value.danger { color: #E24B4A; }
+  
+  .result-button {
+    background: #378ADD;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .result-button:hover {
+    background: #2970c7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>是非題遊戲</h1>
+  <p class="subtitle">判斷題目為對或錯</p>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">題目</div>
+      <div class="stat-value" id="progress">1/5</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⏱ 時間</div>
+      <div class="stat-value" id="timer">0:00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">✓ 正確</div>
+      <div class="stat-value success" id="correct">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">✗ 錯誤</div>
+      <div class="stat-value danger" id="incorrect">0</div>
+    </div>
+  </div>
+
+  <div class="question-container" id="questionContainer">
+    <div class="question-text" id="question">題目會顯示在這裡</div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="button-group">
+    <button class="btn-true" onclick="answerQuestion(true)">O</button>
+    <button class="btn-false" onclick="answerQuestion(false)">X</button>
+    <button class="next-button" id="nextButton" onclick="nextQuestion()">下一題</button>
+  </div>
+
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-modal">
+      <div class="result-title">🎉 完成！</div>
+      
+      <div class="result-stats">
+        <div class="result-stat">
+          <div class="result-stat-label">正確率</div>
+          <div class="result-stat-value success" id="accuracy">0%</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-label">正確</div>
+          <div class="result-stat-value success" id="finalCorrect">0</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-label">花費時間</div>
+          <div class="result-stat-value" id="finalTime">0:00</div>
+        </div>
+      </div>
+      
+      <button class="result-button" onclick="location.reload()">重新開始</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { question: 'HClO₄的酸性比HNO₃強。', answer: true },
+  { question: 'CO的配體強度比H₂O弱。', answer: false },
+  { question: 'F⁻是強場配體。', answer: true },
+  { question: 'I⁻的酸性比Br⁻強。', answer: false },
+  { question: 'H₂O是一個中性分子。', answer: true },
+];
+
+let currentQuestion = 0;
+let correctCount = 0;
+let incorrectCount = 0;
+let startTime = Date.now();
+let timerInterval = null;
+let shuffled = [];
+
+function initGame() {
+  shuffled = [...questions].sort(() => Math.random() - 0.5);
+  document.getElementById('progress').textContent = '1/' + questions.length;
+  showQuestion();
+  startTimer();
+}
+
+function showQuestion() {
+  const question = shuffled[currentQuestion];
+  document.getElementById('question').textContent = question.question;
+  document.getElementById('progress').textContent = (currentQuestion + 1) + '/' + questions.length;
+  
+  document.getElementById('feedback').classList.remove('show');
+  document.getElementById('nextButton').style.display = 'none';
+  
+  const buttons = document.querySelectorAll('.btn-true, .btn-false');
+  buttons.forEach(btn => btn.disabled = false);
+}
+
+function answerQuestion(answer) {
+  const question = shuffled[currentQuestion];
+  const isCorrect = answer === question.answer;
+  
+  const buttons = document.querySelectorAll('.btn-true, .btn-false');
+  buttons.forEach(btn => btn.disabled = true);
+  
+  const feedback = document.getElementById('feedback');
+  feedback.classList.add('show');
+  
+  if (isCorrect) {
+    correctCount++;
+    document.getElementById('correct').textContent = correctCount;
+    feedback.classList.add('success');
+    feedback.classList.remove('error');
+    feedback.textContent = '✓ 正確';
+  } else {
+    incorrectCount++;
+    document.getElementById('incorrect').textContent = incorrectCount;
+    feedback.classList.add('error');
+    feedback.classList.remove('success');
+    feedback.textContent = '✗ 錯誤，正確答案是：' + (question.answer ? 'O' : 'X');
+  }
+  
+  document.getElementById('nextButton').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  
+  if (currentQuestion >= questions.length) {
+    showResults();
+  } else {
+    showQuestion();
+  }
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  }, 100);
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  
+  const accuracy = Math.round((correctCount / questions.length) * 100);
+  document.getElementById('accuracy').textContent = accuracy + '%';
+  document.getElementById('finalCorrect').textContent = correctCount;
+  
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('finalTime').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+initGame();
+</script>
+</body>
+</html>
