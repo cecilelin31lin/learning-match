@@ -6,15 +6,19 @@
     <title>配位基化學光譜序列</title>
     <style>
       * { box-sizing: border-box; }
-      body {
+      html, body {
         margin: 0;
+        padding: 0;
+        overscroll-behavior: none;
+      }
+      body {
         padding: 24px 16px 60px;
         background: #f5f5f5;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
         color: #2B3A55;
         min-height: 100vh;
       }
-      .wrap { max-width: 680px; margin: 0 auto; }
+      .wrap { max-width: 680px; margin: 0 auto; position: relative; }
       h1 {
         text-align: center;
         font-size: 28px;
@@ -68,55 +72,53 @@
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+        position: relative;
       }
 
       .item {
-        position: relative;
         background: white;
         border: 0.5px solid #ccc;
         border-radius: 6px;
-        padding: 12px;
+        padding: 14px 12px;
+        margin-bottom: 8px;
         font-size: 14px;
         color: #2B3A55;
         cursor: grab;
-        transition: all 0.15s;
         touch-action: none;
         user-select: none;
+        -webkit-user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
-      .item:active {
-        cursor: grabbing;
-      }
-      .item:hover {
-        border-color: #999;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      .item:last-child {
+        margin-bottom: 0;
       }
       .item.dragging {
-        opacity: 0.7;
-        background: #378ADD;
-        color: white;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-        z-index: 1000;
+        opacity: 0.95;
+        background: #EAF3FC;
+        border-color: #378ADD;
+        box-shadow: 0 8px 16px rgba(55,138,221,0.3);
+        z-index: 100;
+        cursor: grabbing;
       }
-      .item.drag-over-top::before {
-        content: '';
-        position: absolute;
-        top: -3px;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #378ADD;
+      .item-handle {
+        color: #bbb;
+        font-size: 18px;
+        line-height: 1;
+        flex-shrink: 0;
       }
-      .item.drag-over-bottom::after {
-        content: '';
-        position: absolute;
-        bottom: -3px;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #378ADD;
+      .item-text {
+        flex: 1;
+      }
+      .placeholder {
+        border: 2px dashed #378ADD;
+        background: #f0f8ff;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        transition: height 0.1s ease;
       }
 
       .button-group {
@@ -245,7 +247,7 @@
   <body>
     <div class="wrap">
       <h1>排序順序遊戲</h1>
-      <p class="subtitle">拖曳排序項目到正確的順序</p>
+      <p class="subtitle">按住 ≡ 拖曳排序項目</p>
 
       <div class="stats">
         <div class="stat-card">
@@ -258,7 +260,7 @@
         </div>
       </div>
 
-      <div class="instruction">拖曳排序項目到正確的順序</div>
+      <div class="instruction">按住每個項目左側的 ≡ 圖示拖曳排序（支援手機觸控）</div>
 
       <div class="items-container" id="itemsContainer"></div>
 
@@ -289,210 +291,147 @@
 
       let startTime = Date.now();
       let timerInterval = null;
-      let draggedElement = null;
-      let draggedIndex = -1;
-      let activePointerId = null;
-      let pointerStartY = 0;
-      let pointerDragging = false;
+      let currentItems = [];
+
+      let dragEl = null;
+      let dragStartY = 0;
+      let dragElStartTop = 0;
+      let dragElHeight = 0;
+      let itemsContainer = null;
 
       function initGame() {
-        const itemsContainer = document.getElementById('itemsContainer');
-        itemsContainer.innerHTML = '';
-
-        const shuffled = [...items].sort(() => Math.random() - 0.5);
-
-        shuffled.forEach((item) => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.textContent = item;
-          div.draggable = true;
-          div.dataset.value = item;
-
-          div.addEventListener('dragstart', handleDragStart);
-          div.addEventListener('dragend', handleDragEnd);
-          div.addEventListener('dragover', handleDragOver);
-          div.addEventListener('drop', handleDrop);
-          div.addEventListener('dragleave', handleDragLeave);
-          div.addEventListener('dragenter', handleDragEnter);
-
-          // iPhone / iPad: Safari 對 HTML5 drag-and-drop 支援不完整，
-          // 因此另外使用 Pointer Events 處理觸控拖曳。
-          div.addEventListener('pointerdown', handlePointerDown);
-
-          itemsContainer.appendChild(div);
-        });
-
+        currentItems = [...items].sort(() => Math.random() - 0.5);
+        itemsContainer = document.getElementById('itemsContainer');
+        render();
         startTimer();
       }
 
+      function render() {
+        itemsContainer.innerHTML = '';
+        currentItems.forEach((val) => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.dataset.value = val;
 
+          const handle = document.createElement('span');
+          handle.className = 'item-handle';
+          handle.textContent = '≡';
 
-      function handlePointerDown(e) {
-        if (e.pointerType === 'mouse') return;
+          const text = document.createElement('span');
+          text.className = 'item-text';
+          text.textContent = val;
 
-        activePointerId = e.pointerId;
-        pointerStartY = e.clientY;
-        pointerDragging = false;
-        draggedElement = this;
-        draggedIndex = Array.from(document.querySelectorAll('.item')).indexOf(this);
+          div.appendChild(handle);
+          div.appendChild(text);
 
-        this.setPointerCapture?.(e.pointerId);
-        this.addEventListener('pointermove', handlePointerMove);
-        this.addEventListener('pointerup', handlePointerEnd);
-        this.addEventListener('pointercancel', handlePointerEnd);
-      }
+          // 只有 handle 可以觸發拖曳（避免點擊文字誤觸）
+          handle.addEventListener('mousedown', (e) => startDrag(e, div));
+          handle.addEventListener('touchstart', (e) => startDrag(e, div), { passive: false });
 
-      function handlePointerMove(e) {
-        if (e.pointerId !== activePointerId || !draggedElement) return;
-
-        // 小幅移動先視為點按，避免手指一碰就開始拖曳。
-        if (!pointerDragging && Math.abs(e.clientY - pointerStartY) < 6) return;
-
-        pointerDragging = true;
-        e.preventDefault();
-        draggedElement.classList.add('dragging');
-
-        const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.item');
-        clearDropIndicators();
-
-        if (!target || target === draggedElement || target.parentNode !== draggedElement.parentNode) return;
-
-        const rect = target.getBoundingClientRect();
-        const insertBefore = e.clientY < rect.top + rect.height / 2;
-        target.classList.add(insertBefore ? 'drag-over-top' : 'drag-over-bottom');
-
-        const container = target.parentNode;
-        if (insertBefore) {
-          container.insertBefore(draggedElement, target);
-        } else {
-          container.insertBefore(draggedElement, target.nextSibling);
-        }
-      }
-
-      function handlePointerEnd(e) {
-        if (activePointerId !== null && e.pointerId !== activePointerId) return;
-
-        const element = draggedElement;
-
-        // 某些 iOS Safari 版本在元素移動後呼叫 releasePointerCapture
-        // 可能丟出錯誤；用 try/finally 確保藍色拖曳狀態一定會被清除。
-        try {
-          if (element?.hasPointerCapture?.(e.pointerId)) {
-            element.releasePointerCapture(e.pointerId);
-          }
-        } catch (_) {
-          // 忽略 Safari 的 pointer capture 例外，繼續執行清理。
-        } finally {
-          element?.removeEventListener('pointermove', handlePointerMove);
-          element?.removeEventListener('pointerup', handlePointerEnd);
-          element?.removeEventListener('pointercancel', handlePointerEnd);
-
-          document.querySelectorAll('.item.dragging').forEach(el => {
-            el.classList.remove('dragging');
-          });
-
-          clearDropIndicators();
-          activePointerId = null;
-          pointerDragging = false;
-          draggedElement = null;
-          draggedIndex = -1;
-        }
-      }
-
-      function clearDropIndicators() {
-        document.querySelectorAll('.item').forEach(el => {
-          el.classList.remove('drag-over-top', 'drag-over-bottom');
+          itemsContainer.appendChild(div);
         });
       }
 
-
-      // 手勢被系統中斷、切換分頁或 Safari 遺失 pointerup 時，也恢復外觀。
-      window.addEventListener('pointerup', handlePointerEnd);
-      window.addEventListener('pointercancel', handlePointerEnd);
-      window.addEventListener('blur', () => {
-        document.querySelectorAll('.item.dragging').forEach(el => el.classList.remove('dragging'));
-        clearDropIndicators();
-        activePointerId = null;
-        pointerDragging = false;
-        draggedElement = null;
-        draggedIndex = -1;
-      });
-
-      function handleDragStart(e) {
-        draggedElement = this;
-        draggedIndex = Array.from(document.querySelectorAll('.item')).indexOf(this);
-        this.classList.add('dragging');
-      }
-
-      function handleDragEnd(e) {
-        if (draggedElement) {
-          draggedElement.classList.remove('dragging');
-          draggedElement = null;
-          draggedIndex = -1;
-        }
-        clearDropIndicators();
-      }
-
-      function handleDragEnter(e) {
-        if (this === draggedElement) return;
+      function startDrag(e, el) {
         e.preventDefault();
+        dragEl = el;
+
+        const point = e.touches ? e.touches[0] : e;
+        dragStartY = point.clientY;
+
+        const rect = el.getBoundingClientRect();
+        const containerRect = itemsContainer.getBoundingClientRect();
+        dragElStartTop = rect.top - containerRect.top;
+        dragElHeight = rect.height;
+
+        el.classList.add('dragging');
+        el.style.position = 'absolute';
+        el.style.left = '12px';
+        el.style.right = '12px';
+        el.style.top = dragElStartTop + 'px';
+        el.style.width = (rect.width) + 'px';
+
+        itemsContainer.style.position = 'relative';
+        itemsContainer.style.minHeight = (currentItems.length * (dragElHeight + 8)) + 'px';
+
+        // 幫其他項目定位（用 flow 轉 absolute 模擬）
+        setupStaticPositions(el);
+
+        document.addEventListener('mousemove', onDragMove, { passive: false });
+        document.addEventListener('touchmove', onDragMove, { passive: false });
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchend', onDragEnd);
       }
 
-      function handleDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+      let staticItems = [];
 
-        if (this === draggedElement) return;
-
-        const rect = this.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        const clientY = e.clientY;
-
-        this.classList.remove('drag-over-top');
-        this.classList.remove('drag-over-bottom');
-
-        if (clientY < midpoint) {
-          this.classList.add('drag-over-top');
-        } else {
-          this.classList.add('drag-over-bottom');
-        }
+      function setupStaticPositions(draggedDiv) {
+        staticItems = Array.from(itemsContainer.querySelectorAll('.item')).filter(el => el !== draggedDiv);
+        staticItems.forEach((el, idx) => {
+          const containerRect = itemsContainer.getBoundingClientRect();
+          const rect = el.getBoundingClientRect();
+          el.style.position = 'absolute';
+          el.style.left = '0';
+          el.style.right = '0';
+          el.style.top = (rect.top - containerRect.top) + 'px';
+        });
       }
 
-      function handleDragLeave(e) {
-        this.classList.remove('drag-over-top');
-        this.classList.remove('drag-over-bottom');
-      }
-
-      function handleDrop(e) {
+      function onDragMove(e) {
+        if (!dragEl) return;
         e.preventDefault();
 
-        if (this === draggedElement) return;
+        const point = e.touches ? e.touches[0] : e;
+        const deltaY = point.clientY - dragStartY;
+        let newTop = dragElStartTop + deltaY;
 
-        const allItems = document.querySelectorAll('.item');
-        const targetIndex = Array.from(allItems).indexOf(this);
-        const container = this.parentNode;
+        const maxTop = (currentItems.length - 1) * (dragElHeight + 8);
+        newTop = Math.max(0, Math.min(newTop, maxTop));
 
-        this.classList.remove('drag-over-top');
-        this.classList.remove('drag-over-bottom');
+        dragEl.style.top = newTop + 'px';
 
-        const rect = this.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
+        // 計算應該插入的位置
+        const draggedCenter = newTop + dragElHeight / 2;
+        const currentValue = dragEl.dataset.value;
+        const oldIndex = currentItems.indexOf(currentValue);
 
-        if (e.clientY < midpoint) {
-          container.insertBefore(draggedElement, this);
-        } else {
-          container.insertBefore(draggedElement, this.nextSibling);
+        let newIndex = Math.round(draggedCenter / (dragElHeight + 8));
+        newIndex = Math.max(0, Math.min(newIndex, currentItems.length - 1));
+
+        if (newIndex !== oldIndex) {
+          currentItems.splice(oldIndex, 1);
+          currentItems.splice(newIndex, 0, currentValue);
+
+          // 重新排列其他靜態項目位置
+          staticItems = Array.from(itemsContainer.querySelectorAll('.item')).filter(el => el !== dragEl);
+          staticItems.sort((a, b) => {
+            return currentItems.indexOf(a.dataset.value) - currentItems.indexOf(b.dataset.value);
+          });
+          staticItems.forEach((el) => {
+            const idx = currentItems.indexOf(el.dataset.value);
+            const adjustedIdx = idx > newIndex ? idx : idx;
+            el.style.top = (currentItems.indexOf(el.dataset.value) * (dragElHeight + 8)) + 'px';
+          });
         }
       }
 
-      function getCurrentOrder() {
-        const items = document.querySelectorAll('.item');
-        return Array.from(items).map(el => el.dataset.value);
+      function onDragEnd(e) {
+        if (!dragEl) return;
+
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('touchmove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.removeEventListener('touchend', onDragEnd);
+
+        dragEl.classList.remove('dragging');
+        dragEl = null;
+
+        itemsContainer.style.minHeight = '';
+        render();
       }
 
       function checkOrder() {
-        const currentOrder = getCurrentOrder();
-        const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+        const isCorrect = JSON.stringify(currentItems) === JSON.stringify(correctOrder);
 
         const feedback = document.getElementById('feedback');
         feedback.classList.add('show');
@@ -519,7 +458,6 @@
       }
 
       function startTimer() {
-        clearInterval(timerInterval);
         startTime = Date.now();
         timerInterval = setInterval(() => {
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
