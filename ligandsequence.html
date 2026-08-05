@@ -72,7 +72,6 @@
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 20px;
-        position: relative;
       }
 
       .item {
@@ -86,6 +85,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        position: relative;
         will-change: transform;
       }
       .item:last-child {
@@ -96,11 +96,7 @@
         background: #EAF3FC;
         border-color: #378ADD;
         box-shadow: 0 8px 20px rgba(55,138,221,0.35);
-        position: absolute;
-        left: 12px;
-        right: 12px;
         z-index: 100;
-        pointer-events: none;
       }
       .item.sliding {
         transition: transform 0.18s ease;
@@ -298,7 +294,6 @@
 
       let dragValue = null;
       let dragStartY = 0;
-      let dragElStartTop = 0;
       let itemHeight = 0;
       let orderAtDragStart = [];
 
@@ -350,17 +345,10 @@
 
         const els = getItemEls();
         const draggedEl = els.find(el => el.dataset.value === value);
-        const containerRect = itemsContainer.getBoundingClientRect();
         const rect = draggedEl.getBoundingClientRect();
-
         itemHeight = rect.height + 8; // height + margin-bottom
-        dragElStartTop = rect.top - containerRect.top;
 
-        draggedEl.style.top = dragElStartTop + 'px';
-        draggedEl.style.width = rect.width + 'px';
         draggedEl.classList.add('dragging');
-
-        itemsContainer.style.minHeight = (currentItems.length * itemHeight) + 'px';
 
         document.addEventListener('mousemove', onDragMove, { passive: false });
         document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -374,28 +362,25 @@
 
         const point = e.touches ? e.touches[0] : e;
         const deltaY = point.clientY - dragStartY;
-        const newTop = dragElStartTop + deltaY;
 
         const els = getItemEls();
         const draggedEl = els.find(el => el.dataset.value === dragValue);
-        draggedEl.style.top = newTop + 'px';
 
-        // 計算拖曳項目中心點對應第幾個 slot
-        const draggedCenter = newTop + itemHeight / 2;
-        let newIndex = Math.floor(draggedCenter / itemHeight);
-        newIndex = Math.max(0, Math.min(newIndex, orderAtDragStart.length - 1));
+        // 拖曳項目直接跟著手指走（transform，不脫離文件流）
+        draggedEl.style.transform = `translateY(${deltaY}px)`;
 
         const oldIndex = orderAtDragStart.indexOf(dragValue);
 
-        // 依照 newIndex 重新計算順序（暫時，不觸發 render）
+        // 依照拖曳距離計算新的插入位置
+        let newIndex = oldIndex + Math.round(deltaY / itemHeight);
+        newIndex = Math.max(0, Math.min(newIndex, orderAtDragStart.length - 1));
+
         let newOrder = [...orderAtDragStart];
-        if (newIndex !== oldIndex) {
-          newOrder.splice(oldIndex, 1);
-          newOrder.splice(newIndex, 0, dragValue);
-        }
+        newOrder.splice(oldIndex, 1);
+        newOrder.splice(newIndex, 0, dragValue);
         currentItems = newOrder;
 
-        // 讓其他項目滑動到新位置（用 transform，不重新渲染 DOM）
+        // 其他項目滑動到新位置（transform 位移量 = 新舊 slot 差 * 一格高度）
         els.forEach((el) => {
           if (el === draggedEl) return;
           const val = el.dataset.value;
@@ -414,7 +399,6 @@
         document.removeEventListener('touchend', onDragEnd);
 
         dragValue = null;
-        itemsContainer.style.minHeight = '';
         render();
       }
 
