@@ -18,7 +18,7 @@
         color: #2B3A55;
         min-height: 100vh;
       }
-      .wrap { max-width: 680px; margin: 0 auto; position: relative; }
+      .wrap { max-width: 680px; margin: 0 auto; }
       h1 {
         text-align: center;
         font-size: 28px;
@@ -72,7 +72,6 @@
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 20px;
-        position: relative;
       }
 
       .item {
@@ -83,42 +82,38 @@
         margin-bottom: 8px;
         font-size: 14px;
         color: #2B3A55;
-        cursor: grab;
-        touch-action: none;
-        user-select: none;
-        -webkit-user-select: none;
         display: flex;
         align-items: center;
         gap: 10px;
-        position: relative;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition: transform 0.2s ease;
       }
       .item:last-child {
         margin-bottom: 0;
       }
       .item.dragging {
-        opacity: 0.95;
+        opacity: 0.9;
         background: #EAF3FC;
         border-color: #378ADD;
         box-shadow: 0 8px 16px rgba(55,138,221,0.3);
+        position: relative;
         z-index: 100;
-        cursor: grabbing;
-      }
-      .item-handle {
-        color: #bbb;
-        font-size: 18px;
-        line-height: 1;
-        flex-shrink: 0;
       }
       .item-text {
         flex: 1;
       }
-      .placeholder {
-        border: 2px dashed #378ADD;
-        background: #f0f8ff;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        transition: height 0.1s ease;
+      .item-handle {
+        color: #999;
+        font-size: 20px;
+        line-height: 1;
+        flex-shrink: 0;
+        padding: 8px 12px;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .item-handle:active {
+        cursor: grabbing;
       }
 
       .button-group {
@@ -260,7 +255,7 @@
         </div>
       </div>
 
-      <div class="instruction">按住每個項目左側的 ≡ 圖示拖曳排序（支援手機觸控）</div>
+      <div class="instruction">按住每個項目右側的 ≡ 圖示拖曳排序（支援手機觸控）</div>
 
       <div class="items-container" id="itemsContainer"></div>
 
@@ -292,12 +287,13 @@
       let startTime = Date.now();
       let timerInterval = null;
       let currentItems = [];
-
-      let dragEl = null;
-      let dragStartY = 0;
-      let dragElStartTop = 0;
-      let dragElHeight = 0;
       let itemsContainer = null;
+
+      let dragValue = null;
+      let dragStartY = 0;
+      let dragItemHeight = 0;
+      let dragOffsetInItem = 0;
+      let ghostEl = null;
 
       function initGame() {
         currentItems = [...items].sort(() => Math.random() - 0.5);
@@ -313,49 +309,42 @@
           div.className = 'item';
           div.dataset.value = val;
 
-          const handle = document.createElement('span');
-          handle.className = 'item-handle';
-          handle.textContent = '≡';
-
           const text = document.createElement('span');
           text.className = 'item-text';
           text.textContent = val;
 
-          div.appendChild(handle);
-          div.appendChild(text);
+          const handle = document.createElement('span');
+          handle.className = 'item-handle';
+          handle.textContent = '≡';
 
-          // 只有 handle 可以觸發拖曳（避免點擊文字誤觸）
-          handle.addEventListener('mousedown', (e) => startDrag(e, div));
-          handle.addEventListener('touchstart', (e) => startDrag(e, div), { passive: false });
+          div.appendChild(text);
+          div.appendChild(handle);
+
+          handle.addEventListener('mousedown', (e) => startDrag(e, val));
+          handle.addEventListener('touchstart', (e) => startDrag(e, val), { passive: false });
 
           itemsContainer.appendChild(div);
         });
       }
 
-      function startDrag(e, el) {
-        e.preventDefault();
-        dragEl = el;
+      function getItemEls() {
+        return Array.from(itemsContainer.querySelectorAll('.item'));
+      }
 
+      function startDrag(e, value) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        dragValue = value;
         const point = e.touches ? e.touches[0] : e;
         dragStartY = point.clientY;
 
-        const rect = el.getBoundingClientRect();
-        const containerRect = itemsContainer.getBoundingClientRect();
-        dragElStartTop = rect.top - containerRect.top;
-        dragElHeight = rect.height;
+        const els = getItemEls();
+        const draggedEl = els.find(el => el.dataset.value === value);
+        const rect = draggedEl.getBoundingClientRect();
+        dragItemHeight = rect.height + 8; // 含 margin-bottom
 
-        el.classList.add('dragging');
-        el.style.position = 'absolute';
-        el.style.left = '12px';
-        el.style.right = '12px';
-        el.style.top = dragElStartTop + 'px';
-        el.style.width = (rect.width) + 'px';
-
-        itemsContainer.style.position = 'relative';
-        itemsContainer.style.minHeight = (currentItems.length * (dragElHeight + 8)) + 'px';
-
-        // 幫其他項目定位（用 flow 轉 absolute 模擬）
-        setupStaticPositions(el);
+        draggedEl.classList.add('dragging');
 
         document.addEventListener('mousemove', onDragMove, { passive: false });
         document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -363,70 +352,38 @@
         document.addEventListener('touchend', onDragEnd);
       }
 
-      let staticItems = [];
-
-      function setupStaticPositions(draggedDiv) {
-        staticItems = Array.from(itemsContainer.querySelectorAll('.item')).filter(el => el !== draggedDiv);
-        staticItems.forEach((el, idx) => {
-          const containerRect = itemsContainer.getBoundingClientRect();
-          const rect = el.getBoundingClientRect();
-          el.style.position = 'absolute';
-          el.style.left = '0';
-          el.style.right = '0';
-          el.style.top = (rect.top - containerRect.top) + 'px';
-        });
-      }
-
       function onDragMove(e) {
-        if (!dragEl) return;
+        if (!dragValue) return;
         e.preventDefault();
 
         const point = e.touches ? e.touches[0] : e;
         const deltaY = point.clientY - dragStartY;
-        let newTop = dragElStartTop + deltaY;
 
-        const maxTop = (currentItems.length - 1) * (dragElHeight + 8);
-        newTop = Math.max(0, Math.min(newTop, maxTop));
-
-        dragEl.style.top = newTop + 'px';
-
-        // 計算應該插入的位置
-        const draggedCenter = newTop + dragElHeight / 2;
-        const currentValue = dragEl.dataset.value;
-        const oldIndex = currentItems.indexOf(currentValue);
-
-        let newIndex = Math.round(draggedCenter / (dragElHeight + 8));
+        const oldIndex = currentItems.indexOf(dragValue);
+        const moveSteps = Math.round(deltaY / dragItemHeight);
+        let newIndex = oldIndex + moveSteps;
         newIndex = Math.max(0, Math.min(newIndex, currentItems.length - 1));
 
         if (newIndex !== oldIndex) {
           currentItems.splice(oldIndex, 1);
-          currentItems.splice(newIndex, 0, currentValue);
+          currentItems.splice(newIndex, 0, dragValue);
+          dragStartY = point.clientY;
+          render();
 
-          // 重新排列其他靜態項目位置
-          staticItems = Array.from(itemsContainer.querySelectorAll('.item')).filter(el => el !== dragEl);
-          staticItems.sort((a, b) => {
-            return currentItems.indexOf(a.dataset.value) - currentItems.indexOf(b.dataset.value);
-          });
-          staticItems.forEach((el) => {
-            const idx = currentItems.indexOf(el.dataset.value);
-            const adjustedIdx = idx > newIndex ? idx : idx;
-            el.style.top = (currentItems.indexOf(el.dataset.value) * (dragElHeight + 8)) + 'px';
-          });
+          // 重新標記正在拖曳的元素
+          const els = getItemEls();
+          const draggedEl = els.find(el => el.dataset.value === dragValue);
+          if (draggedEl) draggedEl.classList.add('dragging');
         }
       }
 
       function onDragEnd(e) {
-        if (!dragEl) return;
-
         document.removeEventListener('mousemove', onDragMove);
         document.removeEventListener('touchmove', onDragMove);
         document.removeEventListener('mouseup', onDragEnd);
         document.removeEventListener('touchend', onDragEnd);
 
-        dragEl.classList.remove('dragging');
-        dragEl = null;
-
-        itemsContainer.style.minHeight = '';
+        dragValue = null;
         render();
       }
 
