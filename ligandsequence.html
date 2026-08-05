@@ -72,6 +72,7 @@
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 20px;
+        position: relative;
       }
 
       .item {
@@ -85,18 +86,24 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        transition: transform 0.2s ease;
+        will-change: transform;
       }
       .item:last-child {
         margin-bottom: 0;
       }
       .item.dragging {
-        opacity: 0.9;
+        opacity: 0.95;
         background: #EAF3FC;
         border-color: #378ADD;
-        box-shadow: 0 8px 16px rgba(55,138,221,0.3);
-        position: relative;
+        box-shadow: 0 8px 20px rgba(55,138,221,0.35);
+        position: absolute;
+        left: 12px;
+        right: 12px;
         z-index: 100;
+        pointer-events: none;
+      }
+      .item.sliding {
+        transition: transform 0.18s ease;
       }
       .item-text {
         flex: 1;
@@ -291,9 +298,9 @@
 
       let dragValue = null;
       let dragStartY = 0;
-      let dragItemHeight = 0;
-      let dragOffsetInItem = 0;
-      let ghostEl = null;
+      let dragElStartTop = 0;
+      let itemHeight = 0;
+      let orderAtDragStart = [];
 
       function initGame() {
         currentItems = [...items].sort(() => Math.random() - 0.5);
@@ -336,15 +343,24 @@
         e.stopPropagation();
 
         dragValue = value;
+        orderAtDragStart = [...currentItems];
+
         const point = e.touches ? e.touches[0] : e;
         dragStartY = point.clientY;
 
         const els = getItemEls();
         const draggedEl = els.find(el => el.dataset.value === value);
+        const containerRect = itemsContainer.getBoundingClientRect();
         const rect = draggedEl.getBoundingClientRect();
-        dragItemHeight = rect.height + 8; // 含 margin-bottom
 
+        itemHeight = rect.height + 8; // height + margin-bottom
+        dragElStartTop = rect.top - containerRect.top;
+
+        draggedEl.style.top = dragElStartTop + 'px';
+        draggedEl.style.width = rect.width + 'px';
         draggedEl.classList.add('dragging');
+
+        itemsContainer.style.minHeight = (currentItems.length * itemHeight) + 'px';
 
         document.addEventListener('mousemove', onDragMove, { passive: false });
         document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -358,23 +374,37 @@
 
         const point = e.touches ? e.touches[0] : e;
         const deltaY = point.clientY - dragStartY;
+        const newTop = dragElStartTop + deltaY;
 
-        const oldIndex = currentItems.indexOf(dragValue);
-        const moveSteps = Math.round(deltaY / dragItemHeight);
-        let newIndex = oldIndex + moveSteps;
-        newIndex = Math.max(0, Math.min(newIndex, currentItems.length - 1));
+        const els = getItemEls();
+        const draggedEl = els.find(el => el.dataset.value === dragValue);
+        draggedEl.style.top = newTop + 'px';
 
+        // 計算拖曳項目中心點對應第幾個 slot
+        const draggedCenter = newTop + itemHeight / 2;
+        let newIndex = Math.floor(draggedCenter / itemHeight);
+        newIndex = Math.max(0, Math.min(newIndex, orderAtDragStart.length - 1));
+
+        const oldIndex = orderAtDragStart.indexOf(dragValue);
+
+        // 依照 newIndex 重新計算順序（暫時，不觸發 render）
+        let newOrder = [...orderAtDragStart];
         if (newIndex !== oldIndex) {
-          currentItems.splice(oldIndex, 1);
-          currentItems.splice(newIndex, 0, dragValue);
-          dragStartY = point.clientY;
-          render();
-
-          // 重新標記正在拖曳的元素
-          const els = getItemEls();
-          const draggedEl = els.find(el => el.dataset.value === dragValue);
-          if (draggedEl) draggedEl.classList.add('dragging');
+          newOrder.splice(oldIndex, 1);
+          newOrder.splice(newIndex, 0, dragValue);
         }
+        currentItems = newOrder;
+
+        // 讓其他項目滑動到新位置（用 transform，不重新渲染 DOM）
+        els.forEach((el) => {
+          if (el === draggedEl) return;
+          const val = el.dataset.value;
+          const newPos = newOrder.indexOf(val);
+          const oldPos = orderAtDragStart.indexOf(val);
+          const offset = (newPos - oldPos) * itemHeight;
+          el.classList.add('sliding');
+          el.style.transform = `translateY(${offset}px)`;
+        });
       }
 
       function onDragEnd(e) {
@@ -384,6 +414,7 @@
         document.removeEventListener('touchend', onDragEnd);
 
         dragValue = null;
+        itemsContainer.style.minHeight = '';
         render();
       }
 
