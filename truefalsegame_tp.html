@@ -275,11 +275,11 @@
 
 <script>
 const questions = [
-  { question: 'HClO₄的酸性比HNO₃強。', answer: true },
-  { question: 'CO的配體強度比H₂O弱。', answer: false },
-  { question: 'F⁻是強場配體。', answer: true },
-  { question: 'I⁻的酸性比Br⁻強。', answer: false },
-  { question: 'H₂O是一個中性分子。', answer: true },
+  { question: 'HClO₄的酸性比HNO₃強。', answer: true, explanation: 'HClO₄是最強的酸，強於HNO₃' },
+  { question: 'CO的配體強度比H₂O弱。', answer: false, explanation: 'CO是強場配體，強度遠高於H₂O' },
+  { question: 'F⁻是強場配體。', answer: true, explanation: 'F⁻在譜化學序列中排名靠前，是強場配體' },
+  { question: 'I⁻的酸性比Br⁻強。', answer: false, explanation: '鹵素酸性順序：HF > HCl > HBr > HI，I⁻弱於Br⁻' },
+  { question: 'H₂O是一個中性分子。', answer: true, explanation: 'H₂O的分子式中氧化態為-2，氫為+1，整體呈中性' },
 ];
 
 let currentQuestion = 0;
@@ -323,13 +323,13 @@ function answerQuestion(answer) {
     document.getElementById('correct').textContent = correctCount;
     feedback.classList.add('success');
     feedback.classList.remove('error');
-    feedback.textContent = '✓ 正確';
+    feedback.innerHTML = '✓ 正確<br><span style="font-size: 13px; margin-top: 8px; display: block;">' + (question.explanation || '') + '</span>';
   } else {
     incorrectCount++;
     document.getElementById('incorrect').textContent = incorrectCount;
     feedback.classList.add('error');
     feedback.classList.remove('success');
-    feedback.textContent = '✗ 錯誤，正確答案是：' + (question.answer ? 'O' : 'X');
+    feedback.innerHTML = '✗ 錯誤，正確答案是：' + (question.answer ? 'O' : 'X') + '<br><span style="font-size: 13px; margin-top: 8px; display: block;">' + (question.explanation || '') + '</span>';
   }
   
   document.getElementById('nextButton').style.display = 'inline-block';
