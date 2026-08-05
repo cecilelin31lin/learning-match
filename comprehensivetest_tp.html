@@ -150,11 +150,12 @@
   
   .feedback {
     display: none;
-    padding: 12px;
+    padding: 16px;
     border-radius: 8px;
     margin-bottom: 20px;
     text-align: center;
     font-weight: 500;
+    line-height: 1.6;
   }
   .feedback.show {
     display: block;
@@ -168,6 +169,12 @@
     background: #FDE8E8;
     border: 0.5px solid #E24B4A;
     color: #8B2323;
+  }
+  
+  .explanation {
+    font-size: 13px;
+    margin-top: 8px;
+    display: block;
   }
   
   .result-overlay {
@@ -283,7 +290,7 @@
   <div class="stats">
     <div class="stat-card">
       <div class="stat-label">題目</div>
-      <div class="stat-value" id="progress">1/1</div>
+      <div class="stat-value" id="progress">1/2</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">⏱ 時間</div>
@@ -340,19 +347,14 @@
 
 <script>
 const allQuestions = [
-  { type: 2, question: '1+1=__', answer: '2' },
-  { type: 9, question: 'HClO₄的酸性比HNO₃強', answer: true },
+  { type: 2, question: '1+1=__', answer: '2', explanation: '基本數學運算' },
+  { type: 9, question: 'HClO₄的酸性比HNO₃強', answer: true, explanation: 'HClO₄是最強的酸' },
 ];
 
 const typeNames = {
-  1: '翻翻配對',
   2: '自動選擇',
   3: '選擇題',
   4: '填空題',
-  5: '挖空配對',
-  6: '圖案配對',
-  7: '分類配對',
-  8: '排序順序',
   9: '是非題'
 };
 
@@ -427,19 +429,30 @@ function renderTrueFalse(q, container) {
   const btnTrue = document.createElement('button');
   btnTrue.className = 'option-btn';
   btnTrue.textContent = 'O';
-  btnTrue.style.background = '#4CAF7D';
-  btnTrue.style.color = 'white';
-  btnTrue.onclick = () => selectOption(btnTrue, true);
+  btnTrue.dataset.value = 'true';
+  btnTrue.onclick = () => selectTrueFalse(btnTrue, true);
   
   const btnFalse = document.createElement('button');
   btnFalse.className = 'option-btn';
   btnFalse.textContent = 'X';
-  btnFalse.style.background = '#E24B4A';
-  btnFalse.style.color = 'white';
-  btnFalse.onclick = () => selectOption(btnFalse, false);
+  btnFalse.dataset.value = 'false';
+  btnFalse.onclick = () => selectTrueFalse(btnFalse, false);
   
   container.appendChild(btnTrue);
   container.appendChild(btnFalse);
+}
+
+function selectTrueFalse(btn, value) {
+  const prev = document.querySelector('.option-btn[data-selected="true"]');
+  if (prev) {
+    prev.removeAttribute('data-selected');
+    prev.style.background = '';
+    prev.style.color = '';
+  }
+  btn.setAttribute('data-selected', 'true');
+  btn.style.background = btn.dataset.value === 'true' ? '#4CAF7D' : '#E24B4A';
+  btn.style.color = 'white';
+  selectedAnswer = value;
 }
 
 function selectOption(btn, value) {
@@ -478,19 +491,29 @@ function submitAnswer() {
   const feedback = document.getElementById('feedback');
   feedback.classList.add('show');
   
+  let feedbackHTML = '';
   if (correct) {
     correctCount++;
     document.getElementById('correct').textContent = correctCount;
     feedback.classList.add('success');
     feedback.classList.remove('error');
-    feedback.textContent = '✓ 正確';
+    feedbackHTML = '✓ 正確';
     answers.push({ q: currentQuestion + 1, correct: true });
   } else {
     feedback.classList.add('error');
     feedback.classList.remove('success');
-    feedback.textContent = '✗ 錯誤';
+    feedbackHTML = '✗ 錯誤';
+    if (q.type === 9) {
+      feedbackHTML += '，正確答案是：' + (q.answer ? 'O' : 'X');
+    }
     answers.push({ q: currentQuestion + 1, correct: false });
   }
+  
+  if (q.explanation && q.explanation !== 0 && q.explanation !== '0') {
+    feedbackHTML += '<span class="explanation">' + q.explanation + '</span>';
+  }
+  
+  feedback.innerHTML = feedbackHTML;
   
   document.getElementById('submitBtn').textContent = '下一題';
   document.getElementById('submitBtn').onclick = nextQuestion;
