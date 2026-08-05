@@ -347,10 +347,30 @@
 
 <script>
 const allQuestions = [
-  { type: 2, question: '1+1=__', answer: '2', explanation: '基本數學運算' },
-  { type: 9, question: 'HClO₄的酸性比HNO₃強', answer: true, explanation: 'HClO₄是最強的酸' },
+  { type: 9, question: '身上所有蛋白質都有一定構型並執行固定功能', answer: false, explanation: 'intrinsically disordered protein 內生不穩定沒摺好，但仍有功能' },
+  { type: 9, question: '細胞內生成的hormone或NTM從生成到分泌出cell，會穿過多層膜', answer: false, explanation: '物質一直在vesicle中，先是被包入vesicle，再經由vesicle與plasma membrane融合吐出去。所以未穿過任何膜' },
+  { type: 3, question: '原本在細胞內的vesicle，其內膜在vesicle要融合出cell時，會變成細胞膜的___', answer: '外膜', options: ['內膜', '外膜', '隨機'], explanation: '原先碰到細胞質的膜在融合後一樣是碰到細胞質' },
 ];
 
+/*
+const allQuestions = [
+  // 類型 2：自動選擇（自動生成干擾項）
+  { type: 2, question: '1+1=__', answer: '2', explanation: '基本數學運算' },
+  
+  // 類型 3：選擇題（需提供 options）
+  { type: 3, question: '下列哪個是最強的酸？', answer: 'HClO₄', options: ['HNO₃', 'HClO₄', 'H₂SO₄', 'HCl'], explanation: 'HClO₄是已知最強的酸' },
+  
+  // 類型 4：填空題（文字輸入）
+  { type: 4, question: '水的化學式是___', answer: 'H2O', explanation: '由2個氫原子和1個氧原子組成' },
+  
+  // 類型 9：是非題（answer: true 或 false）
+  { type: 9, question: 'HClO₄的酸性比HNO₃強', answer: true, explanation: 'HClO₄是最強的酸' },
+  
+  // 沒有解析的例子
+  { type: 2, question: '2+2=__', answer: '4', explanation: 0 },
+  { type: 9, question: 'CO是強場配體', answer: true, explanation: 0 },
+];
+*/
 const typeNames = {
   2: '自動選擇',
   3: '選擇題',
