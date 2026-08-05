@@ -74,6 +74,7 @@
       }
 
       .item {
+        position: relative;
         background: white;
         border: 0.5px solid #ccc;
         border-radius: 6px;
@@ -290,6 +291,9 @@
       let timerInterval = null;
       let draggedElement = null;
       let draggedIndex = -1;
+      let activePointerId = null;
+      let pointerStartY = 0;
+      let pointerDragging = false;
 
       function initGame() {
         const itemsContainer = document.getElementById('itemsContainer');
@@ -311,10 +315,80 @@
           div.addEventListener('dragleave', handleDragLeave);
           div.addEventListener('dragenter', handleDragEnter);
 
+          // iPhone / iPad: Safari 對 HTML5 drag-and-drop 支援不完整，
+          // 因此另外使用 Pointer Events 處理觸控拖曳。
+          div.addEventListener('pointerdown', handlePointerDown);
+
           itemsContainer.appendChild(div);
         });
 
         startTimer();
+      }
+
+
+
+      function handlePointerDown(e) {
+        if (e.pointerType === 'mouse') return;
+
+        activePointerId = e.pointerId;
+        pointerStartY = e.clientY;
+        pointerDragging = false;
+        draggedElement = this;
+        draggedIndex = Array.from(document.querySelectorAll('.item')).indexOf(this);
+
+        this.setPointerCapture?.(e.pointerId);
+        this.addEventListener('pointermove', handlePointerMove);
+        this.addEventListener('pointerup', handlePointerEnd);
+        this.addEventListener('pointercancel', handlePointerEnd);
+      }
+
+      function handlePointerMove(e) {
+        if (e.pointerId !== activePointerId || !draggedElement) return;
+
+        // 小幅移動先視為點按，避免手指一碰就開始拖曳。
+        if (!pointerDragging && Math.abs(e.clientY - pointerStartY) < 6) return;
+
+        pointerDragging = true;
+        e.preventDefault();
+        draggedElement.classList.add('dragging');
+
+        const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.item');
+        clearDropIndicators();
+
+        if (!target || target === draggedElement || target.parentNode !== draggedElement.parentNode) return;
+
+        const rect = target.getBoundingClientRect();
+        const insertBefore = e.clientY < rect.top + rect.height / 2;
+        target.classList.add(insertBefore ? 'drag-over-top' : 'drag-over-bottom');
+
+        const container = target.parentNode;
+        if (insertBefore) {
+          container.insertBefore(draggedElement, target);
+        } else {
+          container.insertBefore(draggedElement, target.nextSibling);
+        }
+      }
+
+      function handlePointerEnd(e) {
+        if (e.pointerId !== activePointerId) return;
+
+        draggedElement?.releasePointerCapture?.(e.pointerId);
+        draggedElement?.removeEventListener('pointermove', handlePointerMove);
+        draggedElement?.removeEventListener('pointerup', handlePointerEnd);
+        draggedElement?.removeEventListener('pointercancel', handlePointerEnd);
+        draggedElement?.classList.remove('dragging');
+
+        clearDropIndicators();
+        activePointerId = null;
+        pointerDragging = false;
+        draggedElement = null;
+        draggedIndex = -1;
+      }
+
+      function clearDropIndicators() {
+        document.querySelectorAll('.item').forEach(el => {
+          el.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
       }
 
       function handleDragStart(e) {
@@ -329,10 +403,7 @@
           draggedElement = null;
           draggedIndex = -1;
         }
-        document.querySelectorAll('.item').forEach(el => {
-          el.classList.remove('drag-over-top');
-          el.classList.remove('drag-over-bottom');
-        });
+        clearDropIndicators();
       }
 
       function handleDragEnter(e) {
@@ -421,6 +492,7 @@
       }
 
       function startTimer() {
+        clearInterval(timerInterval);
         startTime = Date.now();
         timerInterval = setInterval(() => {
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
