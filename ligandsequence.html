@@ -13,7 +13,6 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
         color: #2B3A55;
         min-height: 100vh;
-        user-select: none;
       }
       .wrap { max-width: 680px; margin: 0 auto; }
       h1 {
@@ -63,14 +62,6 @@
         color: #666;
       }
 
-      .level-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2B3A55;
-        margin-bottom: 12px;
-        text-align: center;
-      }
-
       .items-container {
         background: white;
         border: 0.5px solid #ddd;
@@ -89,34 +80,53 @@
         padding: 12px;
         font-size: 14px;
         color: #2B3A55;
-        cursor: grab;
-        transition: all 0.2s;
-        touch-action: none;
         display: flex;
         justify-content: space-between;
         align-items: center;
-      }
-      .item:active {
-        cursor: grabbing;
+        gap: 12px;
       }
       .item:hover {
         border-color: #999;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background: #f9f9f9;
       }
-      .item.dragging {
-        opacity: 0.6;
-        background: #f0f0f0;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      }
-      .item.drag-over {
-        border: 2px dashed #378ADD;
+      .item.selected {
         background: #f0f8ff;
+        border-color: #378ADD;
       }
 
-      .item-handle {
-        color: #999;
+      .item-content {
+        flex: 1;
+        cursor: pointer;
+        padding: 6px;
+      }
+
+      .item-buttons {
+        display: flex;
+        gap: 4px;
+      }
+
+      .btn-arrow {
+        background: white;
+        border: 0.5px solid #ddd;
+        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        padding: 0;
         font-size: 16px;
-        margin-left: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #2B3A55;
+      }
+      .btn-arrow:hover {
+        border-color: #378ADD;
+        color: #378ADD;
+      }
+      .btn-arrow:active {
+        background: #f0f8ff;
+      }
+      .btn-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
       }
 
       .button-group {
@@ -245,7 +255,7 @@
   <body>
     <div class="wrap">
       <h1>排序順序遊戲</h1>
-      <p class="subtitle">拖曳排序項目到正確的順序</p>
+      <p class="subtitle">點擊項目，用↑↓按鈕排序</p>
 
       <div class="stats">
         <div class="stat-card">
@@ -258,7 +268,7 @@
         </div>
       </div>
 
-      <div class="instruction">拖曳排序下方項目到正確的順序</div>
+      <div class="instruction">點擊項目選擇，用↑↓按鈕移動</div>
 
       <div class="items-container" id="itemsContainer"></div>
 
@@ -289,123 +299,83 @@
 
       let startTime = Date.now();
       let timerInterval = null;
-      let draggedElement = null;
+      let selectedIndex = -1;
+      let currentItems = [];
 
       function initGame() {
-        const itemsContainer = document.getElementById('itemsContainer');
-        itemsContainer.innerHTML = '';
-
-        const shuffled = [...items].sort(() => Math.random() - 0.5);
-
-        shuffled.forEach((item, idx) => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.textContent = item;
-          div.draggable = true;
-          div.dataset.value = item;
-
-          // 加上拖曳手柄
-          div.innerHTML = `<span>${item}</span><span class="item-handle">≡</span>`;
-
-          // 滑鼠事件
-          div.addEventListener('dragstart', handleDragStart);
-          div.addEventListener('dragend', handleDragEnd);
-          div.addEventListener('dragover', handleDragOver);
-          div.addEventListener('drop', handleDrop);
-          div.addEventListener('dragleave', handleDragLeave);
-
-          // 觸控事件
-          div.addEventListener('touchstart', handleTouchStart);
-          div.addEventListener('touchmove', handleTouchMove);
-          div.addEventListener('touchend', handleTouchEnd);
-
-          itemsContainer.appendChild(div);
-        });
-
+        currentItems = [...items].sort(() => Math.random() - 0.5);
+        selectedIndex = -1;
+        render();
         startTimer();
       }
 
-      function handleDragStart(e) {
-        draggedElement = this;
-        this.classList.add('dragging');
-      }
+      function render() {
+        const itemsContainer = document.getElementById('itemsContainer');
+        itemsContainer.innerHTML = '';
 
-      function handleDragEnd(e) {
-        this.classList.remove('dragging');
-        document.querySelectorAll('.item').forEach(el => {
-          el.classList.remove('drag-over');
+        currentItems.forEach((item, idx) => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          if (idx === selectedIndex) {
+            div.classList.add('selected');
+          }
+
+          const content = document.createElement('div');
+          content.className = 'item-content';
+          content.textContent = item;
+          content.onclick = () => selectItem(idx);
+
+          const buttons = document.createElement('div');
+          buttons.className = 'item-buttons';
+
+          const btnUp = document.createElement('button');
+          btnUp.className = 'btn-arrow';
+          btnUp.textContent = '↑';
+          btnUp.disabled = idx === 0;
+          btnUp.onclick = () => moveUp(idx);
+
+          const btnDown = document.createElement('button');
+          btnDown.className = 'btn-arrow';
+          btnDown.textContent = '↓';
+          btnDown.disabled = idx === currentItems.length - 1;
+          btnDown.onclick = () => moveDown(idx);
+
+          buttons.appendChild(btnUp);
+          buttons.appendChild(btnDown);
+
+          div.appendChild(content);
+          div.appendChild(buttons);
+          itemsContainer.appendChild(div);
         });
       }
 
-      function handleDragOver(e) {
-        e.preventDefault();
-        if (this !== draggedElement) {
-          this.classList.add('drag-over');
+      function selectItem(idx) {
+        selectedIndex = selectedIndex === idx ? -1 : idx;
+        render();
+      }
+
+      function moveUp(idx) {
+        if (idx > 0) {
+          const temp = currentItems[idx];
+          currentItems[idx] = currentItems[idx - 1];
+          currentItems[idx - 1] = temp;
+          selectedIndex = idx - 1;
+          render();
         }
       }
 
-      function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-      }
-
-      function handleDrop(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
-
-        if (this !== draggedElement) {
-          const allItems = document.querySelectorAll('.item');
-          const draggedIdx = Array.from(allItems).indexOf(draggedElement);
-          const targetIdx = Array.from(allItems).indexOf(this);
-
-          if (draggedIdx < targetIdx) {
-            this.parentNode.insertBefore(draggedElement, this.nextSibling);
-          } else {
-            this.parentNode.insertBefore(draggedElement, this);
-          }
+      function moveDown(idx) {
+        if (idx < currentItems.length - 1) {
+          const temp = currentItems[idx];
+          currentItems[idx] = currentItems[idx + 1];
+          currentItems[idx + 1] = temp;
+          selectedIndex = idx + 1;
+          render();
         }
-      }
-
-      // 觸控拖曳
-      function handleTouchStart(e) {
-        draggedElement = this;
-        this.classList.add('dragging');
-      }
-
-      function handleTouchMove(e) {
-        if (!draggedElement) return;
-        
-        const touch = e.touches[0];
-        const allItems = Array.from(document.querySelectorAll('.item'));
-        
-        allItems.forEach(item => {
-          if (item === draggedElement) return;
-          
-          const rect = item.getBoundingClientRect();
-          const midpoint = rect.top + rect.height / 2;
-          
-          if (touch.clientY < midpoint) {
-            item.parentNode.insertBefore(draggedElement, item);
-          } else if (touch.clientY > midpoint) {
-            item.parentNode.insertBefore(draggedElement, item.nextSibling);
-          }
-        });
-      }
-
-      function handleTouchEnd(e) {
-        if (draggedElement) {
-          draggedElement.classList.remove('dragging');
-          draggedElement = null;
-        }
-      }
-
-      function getCurrentOrder() {
-        const items = document.querySelectorAll('.item');
-        return Array.from(items).map(el => el.dataset.value);
       }
 
       function checkOrder() {
-        const currentOrder = getCurrentOrder();
-        const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+        const isCorrect = JSON.stringify(currentItems) === JSON.stringify(correctOrder);
 
         const feedback = document.getElementById('feedback');
         feedback.classList.add('show');
