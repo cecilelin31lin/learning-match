@@ -370,19 +370,33 @@
       }
 
       function handlePointerEnd(e) {
-        if (e.pointerId !== activePointerId) return;
+        if (activePointerId !== null && e.pointerId !== activePointerId) return;
 
-        draggedElement?.releasePointerCapture?.(e.pointerId);
-        draggedElement?.removeEventListener('pointermove', handlePointerMove);
-        draggedElement?.removeEventListener('pointerup', handlePointerEnd);
-        draggedElement?.removeEventListener('pointercancel', handlePointerEnd);
-        draggedElement?.classList.remove('dragging');
+        const element = draggedElement;
 
-        clearDropIndicators();
-        activePointerId = null;
-        pointerDragging = false;
-        draggedElement = null;
-        draggedIndex = -1;
+        // 某些 iOS Safari 版本在元素移動後呼叫 releasePointerCapture
+        // 可能丟出錯誤；用 try/finally 確保藍色拖曳狀態一定會被清除。
+        try {
+          if (element?.hasPointerCapture?.(e.pointerId)) {
+            element.releasePointerCapture(e.pointerId);
+          }
+        } catch (_) {
+          // 忽略 Safari 的 pointer capture 例外，繼續執行清理。
+        } finally {
+          element?.removeEventListener('pointermove', handlePointerMove);
+          element?.removeEventListener('pointerup', handlePointerEnd);
+          element?.removeEventListener('pointercancel', handlePointerEnd);
+
+          document.querySelectorAll('.item.dragging').forEach(el => {
+            el.classList.remove('dragging');
+          });
+
+          clearDropIndicators();
+          activePointerId = null;
+          pointerDragging = false;
+          draggedElement = null;
+          draggedIndex = -1;
+        }
       }
 
       function clearDropIndicators() {
@@ -390,6 +404,19 @@
           el.classList.remove('drag-over-top', 'drag-over-bottom');
         });
       }
+
+
+      // 手勢被系統中斷、切換分頁或 Safari 遺失 pointerup 時，也恢復外觀。
+      window.addEventListener('pointerup', handlePointerEnd);
+      window.addEventListener('pointercancel', handlePointerEnd);
+      window.addEventListener('blur', () => {
+        document.querySelectorAll('.item.dragging').forEach(el => el.classList.remove('dragging'));
+        clearDropIndicators();
+        activePointerId = null;
+        pointerDragging = false;
+        draggedElement = null;
+        draggedIndex = -1;
+      });
 
       function handleDragStart(e) {
         draggedElement = this;
