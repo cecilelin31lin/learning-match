@@ -284,7 +284,7 @@ const questions = [
     options: [
       '$13.6 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$2.178\\times10^{-18} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
-      '$2.178\\times10^{-19} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
+      '$13.6 \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$1.36 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
     ]
   },
@@ -292,7 +292,7 @@ const questions = [
     question: '能量（J/個）的公式是？', 
     answer: 0,
     options: [
-      '$1.36 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
+      '$2.178\\times10^{-18} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$13.6 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$2.178\\times10^{-19} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$2.178\\times10^{-18} \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
@@ -362,29 +362,30 @@ function showQuestion() {
 
 function selectAnswer(btn, isCorrect) {
   if (answered) return;
-  answered = true;
-
-  const allBtns = document.querySelectorAll('.option-btn');
-  allBtns.forEach(b => b.disabled = true);
 
   const feedback = document.getElementById('feedback');
   feedback.classList.add('show');
 
   if (isCorrect) {
+    answered = true;
     btn.classList.add('correct');
+    btn.disabled = true;
     correctCount++;
     document.getElementById('correct').textContent = correctCount;
     feedback.classList.add('success');
     feedback.classList.remove('error');
     feedback.textContent = '✓ 正確';
+    document.getElementById('nextBtn').style.display = 'inline-block';
+
+    const allBtns = document.querySelectorAll('.option-btn');
+    allBtns.forEach(b => b.disabled = true);
   } else {
     btn.classList.add('incorrect');
+    btn.disabled = true;
     feedback.classList.add('error');
     feedback.classList.remove('success');
-    feedback.textContent = '✗ 錯誤';
+    feedback.textContent = '✗ 錯誤，再試一次';
   }
-
-  document.getElementById('nextBtn').style.display = 'inline-block';
 }
 
 function nextQuestion() {
