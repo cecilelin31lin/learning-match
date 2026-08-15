@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>元素週期表測驗</title>
+<title>元素週期表測驗1</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -216,7 +216,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>元素週期表測驗</h1>
+  <h1>元素週期表測驗1</h1>
   <p class="subtitle">選出正確的元素名稱</p>
 
   <div class="stats">
@@ -266,42 +266,15 @@
 
 <script>
 const questions = [
-  { question: '原子序 1 是什麼元素？', answer: 'Hydrogen', options: ['Beryllium', 'Lithium', 'Hydrogen', 'Helium'] },
-  { question: '原子序 2 是什麼元素？', answer: 'Helium', options: ['Hydrogen', 'Lithium', 'Beryllium', 'Helium'] },
-  { question: '原子序 3 是什麼元素？', answer: 'Lithium', options: ['Boron', 'Carbon', 'Lithium', 'Hydrogen'] },
-  { question: '原子序 4 是什麼元素？', answer: 'Beryllium', options: ['Beryllium', 'Helium', 'Boron', 'Carbon'] },
-  { question: '原子序 5 是什麼元素？', answer: 'Boron', options: ['Carbon', 'Boron', 'Helium', 'Lithium'] },
-  { question: '原子序 6 是什麼元素？', answer: 'Carbon', options: ['Boron', 'Lithium', 'Beryllium', 'Carbon'] },
   { question: '原子序 7 是什麼元素？', answer: 'Nitrogen', options: ['Fluorine', 'Carbon', 'Oxygen', 'Nitrogen'] },
-  { question: '原子序 8 是什麼元素？', answer: 'Oxygen', options: ['Fluorine', 'Neon', 'Boron', 'Oxygen'] },
-  { question: '原子序 9 是什麼元素？', answer: 'Fluorine', options: ['Oxygen', 'Fluorine', 'Sodium', 'Magnesium'] },
-  { question: '原子序 10 是什麼元素？', answer: 'Neon', options: ['Nitrogen', 'Oxygen', 'Fluorine', 'Neon'] },
-  { question: '原子序 11 是什麼元素？', answer: 'Sodium', options: ['Silicon', 'Magnesium', 'Sodium', 'Neon'] },
-  { question: '原子序 12 是什麼元素？', answer: 'Magnesium', options: ['Sodium', 'Manganese', 'Neon', 'Magnesium'] },
-  { question: '原子序 13 是什麼元素？', answer: 'Aluminum', options: ['Aluminum', 'Sodium', 'Phosphorus', 'Sulfur'] },
-  { question: '原子序 14 是什麼元素？', answer: 'Silicon', options: ['Chlorine', 'Magnesium', 'Silicon', 'Sulfur'] },
-  { question: '原子序 15 是什麼元素？', answer: 'Phosphorus', options: ['Magnesium', 'Sulfur', 'Phosphorus', 'Silicon'] },
-  { question: '原子序 16 是什麼元素？', answer: 'Sulfur', options: ['Sulfur', 'Phosphorus', 'Argon', 'Silicon'] },
-  { question: '原子序 17 是什麼元素？', answer: 'Chlorine', options: ['Chlorine', 'Calcium', 'Sulfur', 'Phosphorus'] },
-  { question: '原子序 18 是什麼元素？', answer: 'Argon', options: ['Calcium', 'Argon', 'Scandium', 'Potassium'] },
-  { question: '原子序 19 是什麼元素？', answer: 'Potassium', options: ['Chlorine', 'Scandium', 'Calcium', 'Potassium'] },
-  { question: '原子序 20 是什麼元素？', answer: 'Calcium', options: ['Scandium', 'Vanadium', 'Argon', 'Calcium'] },
-  { question: '原子序 21 是什麼元素？', answer: 'Scandium', options: ['Vanadium', 'Calcium', 'Titanium', 'Scandium'] },
   { question: '原子序 22 是什麼元素？', answer: 'Titanium', options: ['Scandium', 'Manganese', 'Titanium', 'Chromium'] },
-  { question: '原子序 23 是什麼元素？', answer: 'Vanadium', options: ['Iron', 'Chromium', 'Scandium', 'Vanadium'] },
-  { question: '原子序 24 是什麼元素？', answer: 'Chromium', options: ['Iron', 'Chromium', 'Scandium', 'Titanium'] },
-  { question: '原子序 25 是什麼元素？', answer: 'Manganese', options: ['Magnesium', 'Vanadium', 'Chromium', 'Manganese'] },
-  { question: '原子序 26 是什麼元素？', answer: 'Iron', options: ['Nickel', 'Iron', 'Cobalt', 'Vanadium'] },
-  { question: '原子序 27 是什麼元素？', answer: 'Cobalt', options: ['Zinc', 'Chromium', 'Manganese', 'Cobalt'] },
-  { question: '原子序 28 是什麼元素？', answer: 'Nickel', options: ['Manganese', 'Nickel', 'Copper', 'Zinc'] },
-  { question: '原子序 29 是什麼元素？', answer: 'Copper', options: ['Cobalt', 'Copper', 'Zinc', 'Nickel'] },
+  { question: '原子序 15 是什麼元素？', answer: 'Phosphorus', options: ['Magnesium', 'Sulfur', 'Phosphorus', 'Silicon'] },
   { question: '原子序 30 是什麼元素？', answer: 'Zinc', options: ['Zinc', 'Cobalt', 'Copper', 'Nickel'] },
- { question: '原子序 31 是什麼元素？', answer: 'Gallium', options: ['Zinc', 'Copper', 'Germanium', 'Gallium'] },
-  { question: '原子序 32 是什麼元素？', answer: 'Germanium', options: ['Copper', 'Selenium', 'Germanium', 'Gallium'] },
+  { question: '原子序 3 是什麼元素？', answer: 'Lithium', options: ['Boron', 'Carbon', 'Lithium', 'Hydrogen'] },
   { question: '原子序 33 是什麼元素？', answer: 'Arsenic', options: ['Krypton', 'Zinc', 'Arsenic', 'Selenium'] },
-  { question: '原子序 34 是什麼元素？', answer: 'Selenium', options: ['Bromine', 'Gallium', 'Krypton', 'Selenium'] },
-  { question: '原子序 35 是什麼元素？', answer: 'Bromine', options: ['Bromine', 'Chlorine', 'Selenium', 'Germanium'] },
-  { question: '原子序 36 是什麼元素？', answer: 'Krypton', options: ['Selenium', 'Bromine', 'Krypton', 'Neon'] },
+  { question: '原子序 11 是什麼元素？', answer: 'Sodium', options: ['Silicon', 'Magnesium', 'Sodium', 'Neon'] },
+  { question: '原子序 26 是什麼元素？', answer: 'Iron', options: ['Nickel', 'Iron', 'Cobalt', 'Vanadium'] },
+  { question: '原子序 18 是什麼元素？', answer: 'Argon', options: ['Calcium', 'Argon', 'Scandium', 'Potassium'] },
 ];
 
 let currentQuestion = 0;
