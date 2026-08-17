@@ -261,27 +261,25 @@
     </div>
 
     <script>
-      ```javascript
-const categories = [
-  { name: 'Optically Active（有光學活性）', color: '#FFE135' },
-  { name: 'Optically Inactive（無光學活性）', color: '#B0C4DE' },
-];
+      const categories = [
+        { name: 'Optically Active（有光學活性）', color: '#FFE135' },
+        { name: 'Optically Inactive（無光學活性）', color: '#B0C4DE' },
+      ];
 
-const items = [
-  { text: '分子本身不對稱', category: 0 },
-  { text: '分子又叫做掌性分子', category: 0 },
-  { text: '分子有鏡像異構物', category: 0 },
-  { text: '分子無內部對應面', category: 0 },
-  { text: '分子無反轉中心', category: 0 },  
-  { text: '不對稱分子且只有一個chiral center', category: 0 },
-  { text: '分子本身對稱', category: 1 },
-  { text: '分子又叫做非掌性分子', category: 1 },
-  { text: '分子有內部對應面', category: 1 },
-  { text: '分子有反轉中心', category: 1 },
-  { text: '分子沒有鏡像異構物（鏡像=本身）', category: 1 },
-  { text: '內消璇化合物', category: 1 },
-];
-```
+      const items = [
+        { text: '分子本身不對稱', category: 0 },
+        { text: '分子又叫做掌性分子', category: 0 },
+        { text: '分子有鏡像異構物', category: 0 },
+        { text: '分子無內部對應面', category: 0 },
+        { text: '分子無反轉中心', category: 0 },  
+        { text: '不對稱分子且只有一個chiral center', category: 0 },
+        { text: '分子本身對稱', category: 1 },
+        { text: '分子又叫做非掌性分子', category: 1 },
+        { text: '分子有內部對應面', category: 1 },
+        { text: '分子有反轉中心', category: 1 },
+        { text: '分子沒有鏡像異構物（鏡像=本身）', category: 1 },
+        { text: '內消璇化合物', category: 1 },
+      ];
 
       let selectedItemIdx = null;
       let matchedCount = 0;
