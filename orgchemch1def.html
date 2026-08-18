@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拼接配對遊戲</title>
+<title>有機ch1名詞定義</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -204,7 +204,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>有機ch1名詞解釋</h1>
+  <h1>有機ch1名詞定義</h1>
   <p class="subtitle">選擇前半句，再選擇對應的後半句</p>
 
   <div class="stats">
@@ -245,13 +245,14 @@
 
 <script>
 const pairs = [
-  { front: 'AIBN', back: '偶氮化合物，常見可產生自由基的物質' },
-  { front: 'BHT', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙很大，所以很穩定' },
-  { front: 'BHA', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙大，所以很穩定' },
-  { front: 'torsional energy', back: '因為化學鍵重疊得到之斥力造成的能量，可理解為 eclipsed 與 staggered 的能量差異' },
-  { front: 'steric strain', back: '因為相鄰C上的基團形成之二面角不同，所形成的能量差異，可理解為 gauch 與 anti 的能量差異' },
-  { front: 'dihedral angle', back: '相鄰的兩個原子，各自的一個化學鍵與另一者的化學鍵所形成化的夾角' },
-  { front: 'bond angle', back: '相同原子上的化學鍵夾角' },
+  // connector 留空 '' 就不會顯示任何連接詞
+  { front: 'AIBN', connector: '的定義為', back: '偶氮化合物，常見可產生自由基的物質' },
+  { front: 'BHT', connector: '的定義為', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙很大，所以很穩定' },
+  { front: 'BHA', connector: '的定義為', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙大，所以很穩定' },
+  { front: 'torsional energy', connector: '的定義為', back: '因為化學鍵重疊得到之斥力造成的能量，可理解為 eclipsed 與 staggered 的能量差異' },
+  { front: 'steric strain', connector: '的定義為', back: '因為相鄰C上的基團形成之二面角不同，所形成的能量差異，可理解為 gauch 與 anti 的能量差異' },
+  { front: 'dihedral angle', connector: '的定義為', back: '相鄰的兩個原子，各自的一個化學鍵與另一者的化學鍵所形成化的夾角' },
+  { front: 'bond angle', connector: '', back: '相同原子上的化學鍵夾角' },
 ];
 
 let selectedFront = null;
@@ -316,7 +317,8 @@ function selectBack(btn, back) {
     const completedContainer = document.getElementById('completedContainer');
     const completedItem = document.createElement('div');
     completedItem.className = 'completed-item';
-    completedItem.textContent = selectedFront + back;
+    const connectorText = pair.connector ? (' ' + pair.connector + ' ') : '';
+    completedItem.textContent = selectedFront + connectorText + back;
     completedContainer.appendChild(completedItem);
 
     matchedCount++;
