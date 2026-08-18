@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼接配對遊戲</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 60px;
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
+    color: #2B3A55;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    color: #2B3A55;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+  }
+  
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2B3A55;
+  }
+  
+  .instruction {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #666;
+  }
+  
+  .section-label {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .options-container {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .option-btn {
+    background: white;
+    border: 0.5px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #2B3A55;
+  }
+  .option-btn:hover {
+    border-color: #999;
+    background: #f9f9f9;
+  }
+  .option-btn[data-selected="true"] {
+    background: #378ADD;
+    color: white;
+    border-color: #378ADD;
+  }
+  .option-btn.completed {
+    background: #E8F9EF;
+    border-color: #4CAF7D;
+    color: #2B6E4F;
+    cursor: default;
+    opacity: 0.5;
+  }
+  .option-btn.incorrect {
+    background: #FDE8E8;
+    border-color: #E24B4A;
+    color: #8B2323;
+  }
+  
+  .completed-container {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
+    min-height: 60px;
+  }
+  
+  .completed-item {
+    background: #E8F9EF;
+    border: 0.5px solid #4CAF7D;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #2B6E4F;
+    font-weight: 500;
+  }
+  .completed-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .result-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .result-overlay.show {
+    display: flex;
+  }
+  
+  .result-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .result-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2B3A55;
+    margin-bottom: 12px;
+  }
+  
+  .result-stat {
+    margin-bottom: 16px;
+  }
+  
+  .result-stat-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  
+  .result-stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #378ADD;
+  }
+  
+  .result-button {
+    background: #378ADD;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .result-button:hover {
+    background: #2970c7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>拼接配對遊戲</h1>
+  <p class="subtitle">選擇前半句，再選擇對應的後半句</p>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">⏱ 時間</div>
+      <div class="stat-value" id="timer">0:00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">✓ 配對</div>
+      <div class="stat-value" id="matched">0/1</div>
+    </div>
+  </div>
+
+  <div class="instruction">先選一個前半句，再選對應的後半句，配對成功會合併顯示在下方</div>
+
+  <div class="section-label">前半句</div>
+  <div class="options-container" id="frontContainer"></div>
+
+  <div class="section-label">後半句</div>
+  <div class="options-container" id="backContainer"></div>
+
+  <div class="section-label">已完成配對</div>
+  <div class="completed-container" id="completedContainer"></div>
+
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-modal">
+      <div class="result-title">🎉 完成！</div>
+      
+      <div class="result-stat">
+        <div class="result-stat-label">答題時間</div>
+        <div class="result-stat-value" id="finalTime">0:00</div>
+      </div>
+      
+      <button class="result-button" onclick="location.reload()">重新開始</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pairs = [
+  { front: '大天而思之，', back: '孰與物畜而制之' },
+  { front: '從天而頌之，', back: '孰與制天命而用之' },
+  { front: '望時而待之，', back: '孰與應時而使之' },
+  { front: '因物而多之，', back: '孰與騁能而化之' },
+  { front: '思物而物之，', back: '孰與理物而勿失之也' },
+  { front: '願於物之所以生，', back: '孰與有物之所以成' },
+  { front: '故錯人而思天，', back: '則失萬物之情' },
+];
+
+let selectedFront = null;
+let matchedCount = 0;
+let startTime = Date.now();
+let timerInterval = null;
+
+function initGame() {
+  document.getElementById('matched').textContent = '0/' + pairs.length;
+
+  const shuffledFront = [...pairs].sort(() => Math.random() - 0.5);
+  const shuffledBack = [...pairs].sort(() => Math.random() - 0.5);
+
+  const frontContainer = document.getElementById('frontContainer');
+  shuffledFront.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = item.front;
+    btn.dataset.front = item.front;
+    btn.onclick = () => selectFront(btn, item.front);
+    frontContainer.appendChild(btn);
+  });
+
+  const backContainer = document.getElementById('backContainer');
+  shuffledBack.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = item.back;
+    btn.dataset.back = item.back;
+    btn.onclick = () => selectBack(btn, item.back);
+    backContainer.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function selectFront(btn, front) {
+  const prevSelected = document.querySelector('#frontContainer .option-btn[data-selected="true"]');
+  if (prevSelected) {
+    prevSelected.removeAttribute('data-selected');
+  }
+
+  selectedFront = front;
+  btn.setAttribute('data-selected', 'true');
+}
+
+function selectBack(btn, back) {
+  if (!selectedFront) return;
+
+  const pair = pairs.find(p => p.front === selectedFront);
+  const isCorrect = pair && pair.back === back;
+
+  if (isCorrect) {
+    const frontBtn = document.querySelector('#frontContainer .option-btn[data-selected="true"]');
+    frontBtn.classList.add('completed');
+    frontBtn.onclick = null;
+    frontBtn.removeAttribute('data-selected');
+
+    btn.classList.add('completed');
+    btn.onclick = null;
+
+    const completedContainer = document.getElementById('completedContainer');
+    const completedItem = document.createElement('div');
+    completedItem.className = 'completed-item';
+    completedItem.textContent = selectedFront + back;
+    completedContainer.appendChild(completedItem);
+
+    matchedCount++;
+    document.getElementById('matched').textContent = matchedCount + '/' + pairs.length;
+
+    selectedFront = null;
+
+    if (matchedCount === pairs.length) {
+      showResults();
+    }
+  } else {
+    btn.classList.add('incorrect');
+    setTimeout(() => {
+      btn.classList.remove('incorrect');
+    }, 500);
+  }
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  }, 100);
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const timeStr = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+  document.getElementById('finalTime').textContent = timeStr;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+initGame();
+</script>
+</body>
+</html>
