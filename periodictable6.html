@@ -224,7 +224,7 @@
 <body>
 <div class="wrap">
   <h1>元素週期表測驗6：整題排序en</h1>
-  <p class="subtitle">選擇單字，點擊對應的句子</p>
+  <p class="subtitle">將上下內容配對</p>
 
   <div class="stats">
     <div class="stat-card">
@@ -237,7 +237,7 @@
     </div>
   </div>
 
-  <div class="instruction">選擇一個單字，然後點擊對應的句子完成配對，配對成功後單字會顯示在句子旁</div>
+  <div class="instruction">選擇一個上方內容，然後點擊對應的下方內容完成配對</div>
 
   <div class="word-buttons" id="wordButtonsContainer"></div>
 
@@ -283,7 +283,8 @@ function initGame() {
   document.getElementById('matched').textContent = '0/' + pairs.length;
 
   const wordButtonsContainer = document.getElementById('wordButtonsContainer');
-  pairs.forEach(item => {
+  const shuffledWords = [...pairs].sort(() => Math.random() - 0.5);
+  shuffledWords.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'word-btn';
     btn.textContent = item.word;
