@@ -269,7 +269,6 @@ const pairs = [
   { word: '鐵 鈷 鎳 銅 鋅', sentence: '鈧 鈦 釩 鉻 錳' },
   { word: '砷 硒 溴 氪', sentence: '鎵 鍺' },
 ];
-
 let selectedWord = null;
 let matchedCount = 0;
 let startTime = Date.now();
@@ -283,7 +282,8 @@ function initGame() {
   document.getElementById('matched').textContent = '0/' + pairs.length;
 
   const wordButtonsContainer = document.getElementById('wordButtonsContainer');
-  pairs.forEach(item => {
+  const shuffledWords = [...pairs].sort(() => Math.random() - 0.5);
+  shuffledWords.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'word-btn';
     btn.textContent = item.word;
