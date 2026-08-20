@@ -224,7 +224,7 @@
 <body>
 <div class="wrap">
   <h1>元素週期表測驗5：整題排序</h1>
-  <p class="subtitle">選擇單字，點擊對應的句子</p>
+  <p class="subtitle">將上下內容配對</p>
 
   <div class="stats">
     <div class="stat-card">
@@ -237,7 +237,7 @@
     </div>
   </div>
 
-  <div class="instruction">選擇一個單字，然後點擊對應的句子完成配對，配對成功後單字會顯示在句子旁</div>
+  <div class="instruction">選擇一個上方內容，然後點擊對應的下方內容完成配對</div>
 
   <div class="word-buttons" id="wordButtonsContainer"></div>
 
@@ -269,6 +269,7 @@ const pairs = [
   { word: '鐵 鈷 鎳 銅 鋅', sentence: '鈧 鈦 釩 鉻 錳' },
   { word: '砷 硒 溴 氪', sentence: '鎵 鍺' },
 ];
+
 let selectedWord = null;
 let matchedCount = 0;
 let startTime = Date.now();
