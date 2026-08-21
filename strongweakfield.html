@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>分類配對遊戲</title>
+    <title>強場、弱場</title>
     <style>
       * { box-sizing: border-box; }
       body {
@@ -101,6 +101,12 @@
         font-size: 12px;
         color: #2B3A55;
       }
+      .category-item img {
+        max-width: 100%;
+        max-height: 60px;
+        display: block;
+        object-fit: contain;
+      }
 
       .items-container {
         background: white;
@@ -152,6 +158,12 @@
         color: #2B6E4F;
         cursor: default;
         opacity: 0.6;
+      }
+      .item-btn img {
+        max-width: 80px;
+        max-height: 80px;
+        display: block;
+        object-fit: contain;
       }
 
       .result-overlay {
@@ -237,7 +249,7 @@
         </div>
       </div>
 
-      <div class="instruction">找出符合強場、弱場的選項</div>
+      <div class="instruction">找出符合強場、弱場的選項，注意有些選項是干擾項，不屬於任何分類</div>
 
       <div class="categories-container" id="categoriesContainer"></div>
 
@@ -261,12 +273,16 @@
     </div>
 
     <script>
-            const categories = [
+      // itemType: 'text' 或 'image' — 決定 items 裡的內容要當文字顯示還是圖片顯示
+      const itemType = 'text';
+
+      const categories = [
         { name: '強場', color: '#FFE135' },
         { name: '弱場', color: '#4FA8D8' },
       ];
 
       const items = [
+        // category 填 -1 代表這是「干擾選項」，永遠不屬於任何分類，0是第一的，1是第二個
         { text: 'low spin', category: 0 },
         { text: '未鍵結電子少', category: 0 },
         { text: 'delta E大', category: 0 },
@@ -280,128 +296,157 @@
         { text: '先半滿再全滿', category: 1 },
         { text: 'sp3d2', category: 1 },
         { text: 'tetrahedral', category: 1 },
-        { text: 'sp3', category: 1 }
+        { text: 'sp3', category: 1 },
+        { text: '干擾選項一', category: -1 },
+        { text: '干擾選項二', category: -1 }
       ];
 
-            let selectedItemIdx = null;
-            let matchedCount = 0;
-            let startTime = Date.now();
-            let timerInterval = null;
-            let categoryContainers = [];
-            let itemElements = {};
+      // 需要被分類完成的項目數（排除干擾項）
+      const totalToMatch = items.filter(item => item.category !== -1).length;
 
-            function initGame() {
-              const shuffled = [...items].sort(() => Math.random() - 0.5);
+      let selectedItemIdx = null;
+      let matchedCount = 0;
+      let startTime = Date.now();
+      let timerInterval = null;
+      let categoryContainers = [];
+      let itemElements = {};
 
-              // 更新計數顯示
-              document.getElementById('matched').textContent = '0/' + items.length;
+      function initGame() {
+        const shuffled = [...items].sort(() => Math.random() - 0.5);
 
-              // 生成分類框
-              const categoriesContainer = document.getElementById('categoriesContainer');
-              categories.forEach((cat, catIdx) => {
-                const box = document.createElement('div');
-                box.className = 'category-box';
-                box.style.borderColor = cat.color;
+        document.getElementById('matched').textContent = '0/' + totalToMatch;
 
-                const title = document.createElement('div');
-                title.className = 'category-title';
-                title.textContent = cat.name;
-                title.style.borderColor = cat.color;
-                title.style.color = cat.color;
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        categories.forEach((cat, catIdx) => {
+          const box = document.createElement('div');
+          box.className = 'category-box';
+          box.style.borderColor = cat.color;
 
-                const itemsBox = document.createElement('div');
-                itemsBox.className = 'category-items';
-                itemsBox.dataset.categoryIdx = catIdx;
-                itemsBox.onclick = () => selectCategory(catIdx);
+          const title = document.createElement('div');
+          title.className = 'category-title';
+          title.textContent = cat.name;
+          title.style.borderColor = cat.color;
+          title.style.color = cat.color;
 
-                box.appendChild(title);
-                box.appendChild(itemsBox);
-                categoriesContainer.appendChild(box);
-                categoryContainers[catIdx] = itemsBox;
-              });
+          const itemsBox = document.createElement('div');
+          itemsBox.className = 'category-items';
+          itemsBox.dataset.categoryIdx = catIdx;
+          itemsBox.onclick = () => selectCategory(catIdx);
 
-              // 生成選項按鈕
-              const itemsContainer = document.getElementById('itemsContainer');
-              shuffled.forEach((item, idx) => {
-                const realIdx = items.findIndex(i => i.text === item.text);
-                const btn = document.createElement('button');
-                btn.className = 'item-btn';
-                btn.textContent = item.text;
-                btn.dataset.index = realIdx;
-                btn.onclick = () => selectItem(btn, realIdx);
-                itemsContainer.appendChild(btn);
-                itemElements[realIdx] = btn;
-              });
+          box.appendChild(title);
+          box.appendChild(itemsBox);
+          categoriesContainer.appendChild(box);
+          categoryContainers[catIdx] = itemsBox;
+        });
 
-              startTimer();
-            }
+        const itemsContainer = document.getElementById('itemsContainer');
+        shuffled.forEach((item) => {
+          const realIdx = items.indexOf(item);
+          const btn = document.createElement('button');
+          btn.className = 'item-btn';
 
-            function selectItem(btn, idx) {
-              const prevSelected = document.querySelector('.item-btn[data-selected="true"]');
-              if (prevSelected) {
-                prevSelected.removeAttribute('data-selected');
-              }
+          if (itemType === 'image') {
+            const img = document.createElement('img');
+            img.src = item.text;
+            img.alt = 'item';
+            btn.appendChild(img);
+          } else {
+            btn.textContent = item.text;
+          }
 
-              selectedItemIdx = idx;
-              btn.setAttribute('data-selected', 'true');
-            }
+          btn.dataset.index = realIdx;
+          btn.onclick = () => selectItem(btn, realIdx);
+          itemsContainer.appendChild(btn);
+          itemElements[realIdx] = btn;
+        });
 
-            function selectCategory(catIdx) {
-              if (selectedItemIdx === null) return;
+        startTimer();
+      }
 
-              const correctCategory = items[selectedItemIdx].category;
+      function selectItem(btn, idx) {
+        const prevSelected = document.querySelector('.item-btn[data-selected="true"]');
+        if (prevSelected) {
+          prevSelected.removeAttribute('data-selected');
+        }
 
-              if (correctCategory === catIdx) {
-                const selectedBtn = document.querySelector('.item-btn[data-selected="true"]');
-                selectedBtn.classList.add('completed');
-                selectedBtn.onclick = null;
-                selectedBtn.removeAttribute('data-selected');
+        selectedItemIdx = idx;
+        btn.setAttribute('data-selected', 'true');
+      }
 
-                const categoryItem = document.createElement('div');
-                categoryItem.className = 'category-item';
-                categoryItem.textContent = items[selectedItemIdx].text;
-                categoryContainers[catIdx].appendChild(categoryItem);
+      function selectCategory(catIdx) {
+        if (selectedItemIdx === null) return;
 
-                matchedCount++;
-                document.getElementById('matched').textContent = matchedCount + '/' + items.length;
+        const item = items[selectedItemIdx];
+        const correctCategory = item.category;
 
-                selectedItemIdx = null;
+        // 干擾項：永遠判定錯誤，不能放入任何分類框
+        if (correctCategory === -1) {
+          const selectedBtn = document.querySelector('.item-btn[data-selected="true"]');
+          selectedBtn.classList.add('incorrect');
+          setTimeout(() => {
+            selectedBtn.classList.remove('incorrect');
+          }, 500);
+          return;
+        }
 
-                if (matchedCount === items.length) {
-                  showResults();
-                }
-              } else {
-                const selectedBtn = document.querySelector('.item-btn[data-selected="true"]');
-                selectedBtn.classList.add('incorrect');
-                setTimeout(() => {
-                  selectedBtn.classList.remove('incorrect');
-                }, 500);
-              }
-            }
+        if (correctCategory === catIdx) {
+          const selectedBtn = document.querySelector('.item-btn[data-selected="true"]');
+          selectedBtn.classList.add('completed');
+          selectedBtn.onclick = null;
+          selectedBtn.removeAttribute('data-selected');
 
-            function startTimer() {
-              startTime = Date.now();
-              timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const mins = Math.floor(elapsed / 60);
-                const secs = elapsed % 60;
-                document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
-              }, 100);
-            }
+          const categoryItem = document.createElement('div');
+          categoryItem.className = 'category-item';
+          if (itemType === 'image') {
+            const img = document.createElement('img');
+            img.src = item.text;
+            img.alt = 'item';
+            categoryItem.appendChild(img);
+          } else {
+            categoryItem.textContent = item.text;
+          }
+          categoryContainers[catIdx].appendChild(categoryItem);
 
-            function showResults() {
-              clearInterval(timerInterval);
+          matchedCount++;
+          document.getElementById('matched').textContent = matchedCount + '/' + totalToMatch;
 
-              const elapsed = Math.floor((Date.now() - startTime) / 1000);
-              const mins = Math.floor(elapsed / 60);
-              const secs = elapsed % 60;
-              const timeStr = mins + ':' + (secs < 10 ? '0' : '') + secs;
+          selectedItemIdx = null;
 
-              document.getElementById('finalTime').textContent = timeStr;
-              document.getElementById('resultOverlay').classList.add('show');
-            }
+          if (matchedCount === totalToMatch) {
+            showResults();
+          }
+        } else {
+          const selectedBtn = document.querySelector('.item-btn[data-selected="true"]');
+          selectedBtn.classList.add('incorrect');
+          setTimeout(() => {
+            selectedBtn.classList.remove('incorrect');
+          }, 500);
+        }
+      }
 
-            initGame();
+      function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const mins = Math.floor(elapsed / 60);
+          const secs = elapsed % 60;
+          document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }, 100);
+      }
+
+      function showResults() {
+        clearInterval(timerInterval);
+
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        const timeStr = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+        document.getElementById('finalTime').textContent = timeStr;
+        document.getElementById('resultOverlay').classList.add('show');
+      }
+
+      initGame();
     </script>
   </body>
 </html>
