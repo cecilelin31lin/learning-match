@@ -78,7 +78,7 @@
     border: 0.5px solid #ccc;
     border-radius: 6px;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
     color: #2B3A55;
@@ -112,7 +112,7 @@
     border: 0.5px solid #ddd;
     border-radius: 8px;
     padding: 12px;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1.6;
     color: #2B3A55;
     cursor: pointer;
@@ -149,9 +149,16 @@
     color: white;
     border-radius: 6px;
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 500;
     flex-shrink: 0;
+  }
+
+  .distractor-note {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    margin-top: 8px;
   }
   
   .result-overlay {
@@ -203,8 +210,14 @@
     font-weight: 600;
     color: #378ADD;
   }
+
+  .result-button-group {
+    display: flex;
+    gap: 10px;
+  }
   
   .result-button {
+    flex: 1;
     background: #378ADD;
     color: white;
     border: none;
@@ -218,6 +231,15 @@
   
   .result-button:hover {
     background: #2970c7;
+  }
+
+  .result-button.secondary {
+    background: white;
+    color: #378ADD;
+    border: 1px solid #378ADD;
+  }
+  .result-button.secondary:hover {
+    background: #EAF3FC;
   }
 </style>
 </head>
@@ -237,7 +259,7 @@
     </div>
   </div>
 
-  <div class="instruction">選擇一個上方內容，然後點擊對應的下方內容完成配對</div>
+  <div class="instruction">選擇一個上方內容，然後點擊對應的下方內容完成配對。注意：上方有些選項可能是干擾項，沒有對應的句子</div>
 
   <div class="word-buttons" id="wordButtonsContainer"></div>
 
@@ -252,7 +274,10 @@
         <div class="result-stat-value" id="finalTime">0:00</div>
       </div>
       
-      <button class="result-button" onclick="location.reload()">重新開始</button>
+      <div class="result-button-group">
+        <button class="result-button secondary" onclick="reviewAnswers()">複習</button>
+        <button class="result-button" onclick="location.reload()">重新開始</button>
+      </div>
     </div>
   </div>
 </div>
@@ -270,6 +295,10 @@ const pairs = [
   { word: '砷 硒 溴 氪', sentence: '鎵 鍺' },
 ];
 
+// 干擾選項：這些字會出現在上方，但永遠沒有對應句子，點擊配對永遠失敗
+// 沒有干擾項時保持空陣列 []
+const distractors = [];
+
 let selectedWord = null;
 let matchedCount = 0;
 let startTime = Date.now();
@@ -283,12 +312,16 @@ function initGame() {
   document.getElementById('matched').textContent = '0/' + pairs.length;
 
   const wordButtonsContainer = document.getElementById('wordButtonsContainer');
-  const shuffledWords = [...pairs].sort(() => Math.random() - 0.5);
+  const allWords = [...pairs.map(p => ({ word: p.word, isDistractor: false })),
+                     ...distractors.map(d => ({ word: d, isDistractor: true }))];
+  const shuffledWords = allWords.sort(() => Math.random() - 0.5);
+
   shuffledWords.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'word-btn';
     btn.textContent = item.word;
     btn.dataset.word = item.word;
+    btn.dataset.distractor = item.isDistractor ? 'true' : 'false';
     btn.onclick = () => selectWord(btn, item.word);
     wordButtonsContainer.appendChild(btn);
   });
@@ -325,6 +358,16 @@ function matchSentence(sentenceEl) {
   if (!selectedWord) return;
 
   const correctWord = sentenceEl.dataset.word;
+  const selectedBtn = document.querySelector('.word-btn[data-selected="true"]');
+
+  // 若選到的是干擾項，永遠判定錯誤
+  if (selectedBtn && selectedBtn.dataset.distractor === 'true') {
+    sentenceEl.classList.add('incorrect');
+    setTimeout(() => {
+      sentenceEl.classList.remove('incorrect');
+    }, 500);
+    return;
+  }
 
   if (selectedWord === correctWord) {
     sentenceEl.classList.add('correct');
@@ -335,7 +378,6 @@ function matchSentence(sentenceEl) {
     matchedWordSpan.textContent = selectedWord;
     sentenceEl.appendChild(matchedWordSpan);
 
-    const selectedBtn = document.querySelector('.word-btn[data-selected="true"]');
     selectedBtn.classList.add('completed');
     selectedBtn.onclick = null;
     selectedBtn.removeAttribute('data-selected');
@@ -376,6 +418,10 @@ function showResults() {
 
   document.getElementById('finalTime').textContent = timeStr;
   document.getElementById('resultOverlay').classList.add('show');
+}
+
+function reviewAnswers() {
+  document.getElementById('resultOverlay').classList.remove('show');
 }
 
 initGame();
