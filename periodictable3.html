@@ -160,8 +160,10 @@
     background: white;
     border-radius: 12px;
     padding: 24px;
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -197,8 +199,14 @@
     font-weight: 600;
     color: #378ADD;
   }
+
+  .result-button-group {
+    display: flex;
+    gap: 10px;
+  }
   
   .result-button {
+    flex: 1;
     background: #378ADD;
     color: white;
     border: none;
@@ -207,15 +215,92 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    width: 100%;
+    transition: all 0.2s;
   }
   .result-button:hover {
     background: #2970c7;
   }
+  .result-button.secondary {
+    background: white;
+    color: #378ADD;
+    border: 1px solid #378ADD;
+  }
+  .result-button.secondary:hover {
+    background: #EAF3FC;
+  }
+
+  .review-container {
+    display: none;
+    margin-top: 20px;
+  }
+  .review-container.show {
+    display: block;
+  }
+
+  .review-item {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+  .review-item.correct {
+    border-left: 4px solid #4CAF7D;
+  }
+  .review-item.incorrect {
+    border-left: 4px solid #E24B4A;
+  }
+  .review-question {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2B3A55;
+    margin-bottom: 10px;
+  }
+  .review-answer-row {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .review-answer-row .label {
+    color: #999;
+    margin-right: 6px;
+  }
+  .review-your-answer.wrong {
+    color: #8B2323;
+  }
+  .review-your-answer.right {
+    color: #2B6E4F;
+  }
+  .review-correct-answer {
+    color: #2B6E4F;
+  }
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .review-header h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+  .back-btn {
+    background: white;
+    color: #378ADD;
+    border: 1px solid #378ADD;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .back-btn:hover {
+    background: #EAF3FC;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="mainWrap">
   <h1>元素週期表測驗3</h1>
   <p class="subtitle">選出正確的元素名稱</p>
 
@@ -244,6 +329,14 @@
     <button class="nav-btn" id="nextBtn" style="display:none;" onclick="nextQuestion()">下一題</button>
   </div>
 
+  <div class="review-container" id="reviewContainer">
+    <div class="review-header">
+      <h2>📋 答題複習</h2>
+      <button class="back-btn" onclick="location.reload()">重新開始</button>
+    </div>
+    <div id="reviewList"></div>
+  </div>
+
   <div class="result-overlay" id="resultOverlay">
     <div class="result-modal">
       <div class="result-title">🎉 測驗完成！</div>
@@ -259,7 +352,10 @@
         </div>
       </div>
       
-      <button class="result-button" onclick="location.reload()">重新開始</button>
+      <div class="result-button-group">
+        <button class="result-button secondary" onclick="reviewAnswers()">複習</button>
+        <button class="result-button" onclick="location.reload()">重新開始</button>
+      </div>
     </div>
   </div>
 </div>
@@ -283,6 +379,7 @@ let startTime = Date.now();
 let timerInterval = null;
 let answered = false;
 let shuffledQuestions = [];
+let reviewLog = []; // 記錄每題：question, correctAnswer, wrongAttempts(使用者答錯過的選項), gotCorrect
 
 function initGame() {
   shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
@@ -309,17 +406,29 @@ function showQuestion() {
 
   const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
 
+  // 本題的答題紀錄物件
+  reviewLog[currentQuestion] = {
+    question: q.question,
+    correctAnswer: q.answer,
+    wrongAttempts: [],
+    firstTryCorrect: null // 是否第一次就答對
+  };
+
   shuffledOptions.forEach((opt) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
-    btn.onclick = () => selectAnswer(btn, opt === q.answer);
+    btn.onclick = () => selectAnswer(btn, opt);
     optionsArea.appendChild(btn);
   });
 }
 
-function selectAnswer(btn, isCorrect) {
+function selectAnswer(btn, opt) {
   if (answered) return;
+
+  const q = shuffledQuestions[currentQuestion];
+  const isCorrect = opt === q.answer;
+  const log = reviewLog[currentQuestion];
 
   const feedback = document.getElementById('feedback');
   feedback.classList.add('show');
@@ -337,12 +446,17 @@ function selectAnswer(btn, isCorrect) {
 
     const allBtns = document.querySelectorAll('.option-btn');
     allBtns.forEach(b => b.disabled = true);
+
+    if (log.firstTryCorrect === null) log.firstTryCorrect = true;
   } else {
     btn.classList.add('incorrect');
     btn.disabled = true;
     feedback.classList.add('error');
     feedback.classList.remove('success');
     feedback.textContent = '✗ 錯誤，再試一次';
+
+    log.wrongAttempts.push(opt);
+    if (log.firstTryCorrect === null) log.firstTryCorrect = false;
   }
 }
 
@@ -377,6 +491,41 @@ function showResults() {
   document.getElementById('finalTime').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
 
   document.getElementById('resultOverlay').classList.add('show');
+}
+
+function reviewAnswers() {
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('questionContainer').style.display = 'none';
+  document.querySelector('.button-group').style.display = 'none';
+
+  const reviewList = document.getElementById('reviewList');
+  reviewList.innerHTML = '';
+
+  reviewLog.forEach((log, idx) => {
+    const item = document.createElement('div');
+    item.className = 'review-item ' + (log.firstTryCorrect ? 'correct' : 'incorrect');
+
+    const qDiv = document.createElement('div');
+    qDiv.className = 'review-question';
+    qDiv.textContent = (idx + 1) + '. ' + log.question;
+    item.appendChild(qDiv);
+
+    if (log.wrongAttempts.length > 0) {
+      const wrongRow = document.createElement('div');
+      wrongRow.className = 'review-answer-row';
+      wrongRow.innerHTML = '<span class="label">你曾答錯：</span><span class="review-your-answer wrong">' + log.wrongAttempts.join('、') + '</span>';
+      item.appendChild(wrongRow);
+    }
+
+    const correctRow = document.createElement('div');
+    correctRow.className = 'review-answer-row';
+    correctRow.innerHTML = '<span class="label">正確答案：</span><span class="review-correct-answer">' + log.correctAnswer + '</span>';
+    item.appendChild(correctRow);
+
+    reviewList.appendChild(item);
+  });
+
+  document.getElementById('reviewContainer').classList.add('show');
 }
 
 initGame();
