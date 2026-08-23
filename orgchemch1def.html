@@ -185,7 +185,13 @@
     color: #378ADD;
   }
   
+  .result-button-group {
+    display: flex;
+    gap: 10px;
+  }
+
   .result-button {
+    flex: 1;
     background: #378ADD;
     color: white;
     border: none;
@@ -199,6 +205,15 @@
   
   .result-button:hover {
     background: #2970c7;
+  }
+
+  .result-button.secondary {
+    background: white;
+    color: #378ADD;
+    border: 1px solid #378ADD;
+  }
+  .result-button.secondary:hover {
+    background: #EAF3FC;
   }
 </style>
 </head>
@@ -238,12 +253,20 @@
         <div class="result-stat-value" id="finalTime">0:00</div>
       </div>
       
-      <button class="result-button" onclick="location.reload()">重新開始</button>
+      <div class="result-button-group">
+        <button class="result-button secondary" onclick="reviewAnswers()">複習</button>
+        <button class="result-button" onclick="location.reload()">重新開始</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
+// shuffleFront: 1 = 打亂前半句順序，0 = 依照原本順序（不打亂）
+const shuffleFront = 1;
+// shuffleBack: 1 = 打亂後半句順序，0 = 依照原本順序（不打亂）
+const shuffleBack = 1;
+
 const pairs = [
   // connector 留空 '' 就不會顯示任何連接詞
   { front: 'AIBN', connector: '的定義為', back: '偶氮化合物，常見可產生自由基的物質' },
@@ -263,8 +286,12 @@ let timerInterval = null;
 function initGame() {
   document.getElementById('matched').textContent = '0/' + pairs.length;
 
-  const shuffledFront = [...pairs].sort(() => Math.random() - 0.5);
-  const shuffledBack = [...pairs].sort(() => Math.random() - 0.5);
+  const shuffledFront = shuffleFront === 1
+    ? [...pairs].sort(() => Math.random() - 0.5)
+    : [...pairs];
+  const shuffledBack = shuffleBack === 1
+    ? [...pairs].sort(() => Math.random() - 0.5)
+    : [...pairs];
 
   const frontContainer = document.getElementById('frontContainer');
   shuffledFront.forEach(item => {
@@ -357,6 +384,10 @@ function showResults() {
 
   document.getElementById('finalTime').textContent = timeStr;
   document.getElementById('resultOverlay').classList.add('show');
+}
+
+function reviewAnswers() {
+  document.getElementById('resultOverlay').classList.remove('show');
 }
 
 initGame();
