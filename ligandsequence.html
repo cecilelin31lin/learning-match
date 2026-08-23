@@ -225,7 +225,13 @@
         color: #378ADD;
       }
 
+      .result-button-group {
+        display: flex;
+        gap: 10px;
+      }
+
       .result-button {
+        flex: 1;
         background: #378ADD;
         color: white;
         border: none;
@@ -240,11 +246,20 @@
       .result-button:hover {
         background: #2970c7;
       }
+
+      .result-button.secondary {
+        background: white;
+        color: #378ADD;
+        border: 1px solid #378ADD;
+      }
+      .result-button.secondary:hover {
+        background: #EAF3FC;
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <h1>配位基＿化學光譜序列</h1>
+      <h1>配位基化學光譜序列</h1>
       <p class="subtitle">按住 ≡ 拖曳排序項目</p>
 
       <div class="stats">
@@ -258,7 +273,7 @@
         </div>
       </div>
 
-      <div class="instruction">按照梯隊順序排序</div>
+      <div class="instruction">按住每個項目右側的 ≡ 圖示拖曳排序（支援手機觸控）</div>
 
       <div class="items-container" id="itemsContainer"></div>
 
@@ -278,14 +293,17 @@
             <div class="result-stat-value" id="finalTime">0:00</div>
           </div>
 
-          <button class="result-button" onclick="location.reload()">重新開始</button>
+          <div class="result-button-group">
+            <button class="result-button secondary" onclick="reviewAnswers()">複習</button>
+            <button class="result-button" onclick="location.reload()">重新開始</button>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      const items = ['CO', 'CN-', 'en', 'NH3', 'NCS-', 'H2O', 'F-', 'Cl-', 'Br-', 'I-'];
-      const correctOrder = ['CO', 'CN-', 'en', 'NH3', 'NCS-', 'H2O', 'F-', 'Cl-', 'Br-', 'I-'];
+      const items = ['CO', 'CN', 'en', 'NH3', 'NCS', 'H2O', 'F-', 'Cl-', 'Br-', 'I-'];
+      const correctOrder = ['CO', 'CN', 'en', 'NH3', 'NCS', 'H2O', 'F-', 'Cl-', 'Br-', 'I-'];
 
       let startTime = Date.now();
       let timerInterval = null;
@@ -449,6 +467,10 @@
 
         document.getElementById('finalTime').textContent = timeStr;
         document.getElementById('resultOverlay').classList.add('show');
+      }
+
+      function reviewAnswers() {
+        document.getElementById('resultOverlay').classList.remove('show');
       }
 
       initGame();
