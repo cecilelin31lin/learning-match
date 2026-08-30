@@ -158,16 +158,16 @@
   }
   
   .sentence-btn.correct {
-    background: #E8F9EF;
-    border-color: #4CAF7D;
-    color: #2B6E4F;
+    background: rgba(70,129,137,.14);
+    border-color: #468189;
+    color: #468189;
     cursor: default;
   }
   
   .sentence-btn.incorrect {
-    background: #FDE8E8;
-    border-color: #E24B4A;
-    color: #8B2323;
+    background: rgba(232,130,140,.16);
+    border-color: #E8828C;
+    color: #E8828C;
   }
 
   .review-container {
@@ -190,15 +190,15 @@
   }
   .back-btn {
     background: white;
-    color: #378ADD;
-    border: 1px solid #378ADD;
+    color: #B0C4DE;
+    border: 1px solid #B0C4DE;
     border-radius: 6px;
     padding: 8px 16px;
     font-size: 13px;
     cursor: pointer;
   }
   .back-btn:hover {
-    background: #EAF3FC;
+    background: rgba(176,196,222,.25);
   }
 
   .review-row {
@@ -273,7 +273,7 @@
   .result-stat-value {
     font-size: 24px;
     font-weight: 600;
-    color: #378ADD;
+    color: #B0C4DE;
   }
 
   .result-button-group {
@@ -283,7 +283,7 @@
   
   .result-button {
     flex: 1;
-    background: #378ADD;
+    background: #B0C4DE;
     color: white;
     border: none;
     border-radius: 6px;
@@ -295,16 +295,16 @@
   }
   
   .result-button:hover {
-    background: #2970c7;
+    background: #9AB3D0;
   }
 
   .result-button.secondary {
     background: white;
-    color: #378ADD;
-    border: 1px solid #378ADD;
+    color: #B0C4DE;
+    border: 1px solid #B0C4DE;
   }
   .result-button.secondary:hover {
-    background: #EAF3FC;
+    background: rgba(176,196,222,.25);
   }
 </style>
 </head>
@@ -363,7 +363,6 @@
 // shuffleSentences: 1 = 打亂句子順序，0 = 依照原本順序（不打亂）
 const shuffleSentences = 1;
 
-
 const pairs = [
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/coupling.png', sentence: 'Coupling：兩個自由基結合，形成一個新的鍵。' },
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/disproportional.png', sentence: 'Disproportionation：兩個自由基反應，一個自由基取得H，另一個失去H，形成飽和與不飽和產物。' },
@@ -371,6 +370,7 @@ const pairs = [
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/addition.png', sentence: 'Addition：自由基加成到π bond上，形成新的自由基。' },
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/fragment.png', sentence: 'Fragmentation：大分子裂解，形成較小的分子與新的自由基，且通常會生成π bond。' },
 ];
+
 
 let selectedImageIdx = null;
 let matchedCount = 0;
