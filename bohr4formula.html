@@ -4,375 +4,94 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bohr模型公式測驗</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <style>
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 24px 16px 60px;
-    background: #f5f5f5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Nunito', sans-serif;
-    color: #2B3A55;
-    min-height: 100vh;
-  }
-  .wrap { max-width: 680px; margin: 0 auto; }
-  h1 {
-    text-align: center;
-    font-size: 28px;
-    color: #2B3A55;
-    margin: 0 0 8px;
-  }
-  .subtitle {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 24px;
-  }
-  
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-card {
-    background: white;
-    border: 0.5px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-label {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 6px;
-  }
-  .stat-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2B3A55;
-  }
-  
-  .question-container {
-    background: white;
-    border: 0.5px solid #ddd;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .question-text {
-    font-size: 16px;
-    font-weight: 500;
-    color: #2B3A55;
-    margin-bottom: 20px;
-  }
-  
-  .option-btn {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 10px;
-    border: 0.5px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    cursor: pointer;
-    text-align: left;
-    font-size: 15px;
-    transition: all 0.2s;
-  }
-  .option-btn:hover {
-    border-color: #999;
-    background: #f9f9f9;
-  }
-  .option-btn[data-selected="true"] {
-    background: rgba(176,196,222,.30);
-    border-color: #B0C4DE;
-  }
-  .option-btn.correct {
-    background: rgba(70,129,137,.14);
-    border-color: #468189;
-  }
-  .option-btn.incorrect {
-    background: rgba(232,130,140,.16);
-    border-color: #E8828C;
-  }
-  .option-btn:disabled {
-    cursor: default;
-  }
-  
-  .feedback {
-    display: none;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-weight: 500;
-  }
-  .feedback.show {
-    display: block;
-  }
-  .feedback.success {
-    background: rgba(70,129,137,.14);
-    border: 0.5px solid #468189;
-    color: #468189;
-  }
-  .feedback.error {
-    background: rgba(232,130,140,.16);
-    border: 0.5px solid #E8828C;
-    color: #E8828C;
-  }
-  .explanation {
-    font-size: 13px;
-    margin-top: 8px;
-    display: block;
-    line-height: 1.6;
-  }
-  .explanation-image {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 8px;
-    display: block;
-  }
-  .review-explanation {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #555;
-  }
-  
-  .button-group {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-  
-  button.nav-btn {
-    border: none;
-    border-radius: 8px;
-    padding: 10px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    background: #B0C4DE;
-    color: white;
-    transition: all 0.2s;
-  }
-  button.nav-btn:hover {
-    background: #9AB3D0;
-  }
-  
-  .result-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .result-overlay.show {
-    display: flex;
-  }
-  
-  .result-modal {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .result-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2B3A55;
-    margin-bottom: 20px;
-  }
-  
-  .result-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  
-  .result-stat {
-    background: #f9f9f9;
-    border-radius: 8px;
-    padding: 12px;
-  }
-  
-  .result-stat-label {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 4px;
-  }
-  
-  .result-stat-value {
-    font-size: 20px;
-    font-weight: 600;
-    color: #B0C4DE;
-  }
-
-  .result-button-group {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .result-button {
-    flex: 1;
-    background: #B0C4DE;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .result-button:hover {
-    background: #9AB3D0;
-  }
-  .result-button.secondary {
-    background: white;
-    color: #B0C4DE;
-    border: 1px solid #B0C4DE;
-  }
-  .result-button.secondary:hover {
-    background: rgba(176,196,222,.25);
-  }
-
-  .review-container {
-    display: none;
-    margin-top: 20px;
-  }
-  .review-container.show {
-    display: block;
-  }
-
-  .review-item {
-    background: white;
-    border: 0.5px solid #ddd;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    text-align: left;
-  }
-  .review-item.correct {
-    border-left: 4px solid #468189;
-  }
-  .review-item.incorrect {
-    border-left: 4px solid #E8828C;
-  }
-  .review-question {
-    font-size: 14px;
-    font-weight: 500;
-    color: #2B3A55;
-    margin-bottom: 10px;
-  }
-  .review-answer-row {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  .review-answer-row .label {
-    color: #999;
-    margin-right: 6px;
-  }
-  .review-your-answer.wrong {
-    color: #E8828C;
-  }
-  .review-your-answer.right {
-    color: #468189;
-  }
-  .review-correct-answer {
-    color: #468189;
-  }
-
-  .review-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  .review-header h2 {
-    font-size: 20px;
-    margin: 0;
-  }
-  .back-btn {
-    background: white;
-    color: #B0C4DE;
-    border: 1px solid #B0C4DE;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .back-btn:hover {
-    background: rgba(176,196,222,.25);
-  }
+  body { margin:0; padding:24px 16px 60px; background:#f5f5f5; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Nunito',sans-serif; color:#2B3A55; min-height:100vh; }
+  .wrap { max-width:680px; margin:0 auto; }
+  h1 { text-align:center; font-size:28px; color:#2B3A55; margin:0 0 8px; }
+  .subtitle { text-align:center; font-size:14px; color:#666; margin-bottom:24px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+  .stat-card { background:white; border:.5px solid #ddd; border-radius:8px; padding:12px; text-align:center; }
+  .stat-label { font-size:12px; color:#999; margin-bottom:6px; }
+  .stat-value { font-size:18px; font-weight:600; color:#2B3A55; }
+  .question-container { background:white; border:.5px solid #ddd; border-radius:12px; padding:24px; margin-bottom:20px; }
+  .question-text { font-size:16px; font-weight:500; color:#2B3A55; margin-bottom:20px; }
+  .option-btn { display:block; width:100%; padding:14px; margin-bottom:10px; border:.5px solid #ddd; border-radius:8px; background:white; cursor:pointer; text-align:left; font-size:15px; transition:all .2s; color:#2B3A55; }
+  .option-btn:hover { border-color:#999; background:#f9f9f9; }
+  .option-btn[data-selected="true"] { background:rgba(176,196,222,.30); border-color:#B0C4DE; }
+  .option-btn.correct { background:rgba(70,129,137,.14); border-color:#468189; }
+  .option-btn.incorrect { background:rgba(232,130,140,.16); border-color:#E8828C; }
+  .option-btn:disabled { cursor:default; }
+  .feedback { display:none; padding:12px; border-radius:8px; margin-bottom:20px; text-align:center; font-weight:500; }
+  .feedback.show { display:block; }
+  .feedback.success { background:rgba(70,129,137,.14); border:.5px solid #468189; color:#468189; }
+  .feedback.error { background:rgba(232,130,140,.16); border:.5px solid #E8828C; color:#E8828C; }
+  .button-group { display:flex; gap:12px; justify-content:center; }
+  button.nav-btn { border:none; border-radius:8px; padding:10px 24px; font-size:14px; font-weight:500; cursor:pointer; background:#B0C4DE; color:white; transition:all .2s; }
+  button.nav-btn:hover { background:#9AB3D0; }
+  .result-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); align-items:center; justify-content:center; z-index:1000; }
+  .result-overlay.show { display:flex; }
+  .result-modal { background:white; border-radius:12px; padding:24px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.15); }
+  .result-title { font-size:18px; font-weight:600; color:#2B3A55; margin-bottom:20px; }
+  .result-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .result-stat { background:#f9f9f9; border-radius:8px; padding:12px; }
+  .result-stat-label { font-size:12px; color:#999; margin-bottom:4px; }
+  .result-stat-value { font-size:20px; font-weight:600; color:#B0C4DE; }
+  .result-button-group { display:flex; gap:10px; }
+  .result-button { flex:1; background:#B0C4DE; color:white; border:none; border-radius:6px; padding:10px 20px; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; }
+  .result-button:hover { background:#9AB3D0; }
+  .result-button.secondary { background:white; color:#B0C4DE; border:1px solid #B0C4DE; }
+  .result-button.secondary:hover { background:rgba(176,196,222,.25); }
+  .review-container { display:none; margin-top:20px; }
+  .review-container.show { display:block; }
+  .review-item { background:white; border:.5px solid #ddd; border-radius:12px; padding:16px; margin-bottom:12px; text-align:left; }
+  .review-item.correct { border-left:4px solid #468189; }
+  .review-item.incorrect { border-left:4px solid #E8828C; }
+  .review-question { font-size:14px; font-weight:500; color:#2B3A55; margin-bottom:10px; }
+  .review-answer-row { font-size:13px; margin-bottom:6px; }
+  .review-answer-row .label { color:#999; margin-right:6px; }
+  .review-your-answer.wrong { color:#E8828C; }
+  .review-correct-answer { color:#468189; }
+  .review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .review-header h2 { font-size:20px; margin:0; }
+  .back-btn { background:white; color:#B0C4DE; border:1px solid #B0C4DE; border-radius:6px; padding:8px 16px; font-size:13px; cursor:pointer; }
+  .back-btn:hover { background:rgba(176,196,222,.25); }
+  mjx-container { overflow-x:auto; overflow-y:hidden; max-width:100%; }
 </style>
 </head>
 <body>
-<div class="wrap" id="mainWrap">
+<div class="wrap">
   <h1>Bohr模型公式測驗</h1>
   <p class="subtitle">選出正確的答案</p>
-
   <div class="stats">
-    <div class="stat-card">
-      <div class="stat-label">題目</div>
-      <div class="stat-value" id="progress">1/3</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">⏱ 時間</div>
-      <div class="stat-value" id="timer">0:00</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">✓ 正確</div>
-      <div class="stat-value" id="correct">0</div>
-    </div>
+    <div class="stat-card"><div class="stat-label">題目</div><div class="stat-value" id="progress">1/4</div></div>
+    <div class="stat-card"><div class="stat-label">⏱ 時間</div><div class="stat-value" id="timer">0:00</div></div>
+    <div class="stat-card"><div class="stat-label">✓ 正確</div><div class="stat-value" id="correct">0</div></div>
   </div>
-
   <div class="question-container" id="questionContainer">
     <div class="question-text" id="questionText"></div>
     <div id="optionsArea"></div>
     <div class="feedback" id="feedback"></div>
   </div>
-
-  <div class="button-group">
-    <button class="nav-btn" id="submitBtn" onclick="submitAnswer()">確認答案</button>
-  </div>
-
+  <div class="button-group"><button class="nav-btn" id="submitBtn" onclick="submitAnswer()">確認答案</button></div>
   <div class="review-container" id="reviewContainer">
-    <div class="review-header">
-      <h2>📋 答題複習</h2>
-      <button class="back-btn" onclick="location.reload()">重新開始</button>
-    </div>
+    <div class="review-header"><h2>📋 答題複習</h2><button class="back-btn" onclick="location.reload()">重新開始</button></div>
     <div id="reviewList"></div>
   </div>
-
   <div class="result-overlay" id="resultOverlay">
     <div class="result-modal">
       <div class="result-title">🎉 測驗完成！</div>
-      
       <div class="result-stats">
-        <div class="result-stat">
-          <div class="result-stat-label">正確率</div>
-          <div class="result-stat-value" id="accuracy">0%</div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat-label">用時</div>
-          <div class="result-stat-value" id="finalTime">0:00</div>
-        </div>
+        <div class="result-stat"><div class="result-stat-label">正確率</div><div class="result-stat-value" id="accuracy">0%</div></div>
+        <div class="result-stat"><div class="result-stat-label">用時</div><div class="result-stat-value" id="finalTime">0:00</div></div>
       </div>
-      
       <div class="result-button-group">
         <button class="result-button secondary" onclick="reviewAnswers()">複習</button>
         <button class="result-button" onclick="location.reload()">重新開始</button>
@@ -380,32 +99,32 @@
     </div>
   </div>
 </div>
-
 <script>
 const questions = [
-  { 
-    question: '能量（eV/個）的公式是？', 
-    answer: 0,
+  {
+    question: '能量（eV/個）的公式是？',
+    answer: '$13.6 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
     options: [
       '$13.6 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$2.178\\times10^{-18} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
-      '$13.6 \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
+      '$2.178\\times10^{-19} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$1.36 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
     ]
   },
-  { 
-    question: '能量（J/個）的公式是？', 
-    answer: 0,
+  {
+    question: '能量（J/個）的公式是？',
+    answer: '$2.178\\times10^{-18} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
     options: [
       '$2.178\\times10^{-18} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$13.6 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$2.178\\times10^{-19} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
-      '$2.178\\times10^{-18} \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
+      '$1.36 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
+
     ]
   },
-  { 
-    question: '頻率（Hz）的公式是？', 
-    answer: 0,
+  {
+    question: '頻率（Hz）的公式是？',
+    answer: '$3.3\\times10^{15} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
     options: [
       '$3.3\\times10^{15} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$3.3\\times10^{-16} \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
@@ -413,22 +132,17 @@ const questions = [
       '$3.3\\times10^{15} \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$'
     ]
   },
-  { 
-    question: '波長（nm）的公式是？', 
-    answer: 0,
+  {
+    question: '波長（nm）的公式是？',
+    answer: '$90 = nm \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
     options: [
-      '$90=nm×Z²×[(1/m²)-(1/n²)]$',
+      '$90 = nm \\times Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$nm = 90 \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
-      '$90=nm×Z×[(1/m²)-(1/n²)]$', 
+      '$90 = nm \\times Z^2 \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]$',
       '$nm = \\dfrac{90}{Z \\times \\left[\\dfrac{1}{m^2} - \\dfrac{1}{n^2}\\right]}$'
     ]
-  },
+  }
 ];
-
-/*
-資料格式說明：
-explanation: { text: '解析文字（沒有就填空字串）', image: '圖片網址（沒有就填空字串）' }
-*/
 
 let currentQuestion = 0;
 let correctCount = 0;
@@ -437,20 +151,25 @@ let timerInterval = null;
 let answered = false;
 let selectedAnswer = null;
 let shuffledQuestions = [];
-let reviewLog = []; // 記錄每題：question, correctAnswer, wrongAttempts(使用者答錯過的選項), gotCorrect
+let reviewLog = [];
+
+function typesetMath(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) MathJax.typesetClear([el]);
+    MathJax.typesetPromise([el]).catch(() => {});
+  } else {
+    setTimeout(() => typesetMath(el), 150);
+  }
+}
 
 function initGame() {
   shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
   showQuestion();
   startTimer();
-
-  document.addEventListener('keypress', (e) => {
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      if (answered) {
-        nextQuestion();
-      } else {
-        submitAnswer();
-      }
+      e.preventDefault();
+      if (answered) nextQuestion(); else submitAnswer();
     }
   });
 }
@@ -461,58 +180,43 @@ function showQuestion() {
   const q = shuffledQuestions[currentQuestion];
   document.getElementById('progress').textContent = (currentQuestion + 1) + '/' + shuffledQuestions.length;
   document.getElementById('questionText').textContent = q.question;
-  document.getElementById('feedback').classList.remove('show');
-
+  const feedback = document.getElementById('feedback');
+  feedback.className = 'feedback';
+  feedback.textContent = '';
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.textContent = '確認答案';
   submitBtn.onclick = submitAnswer;
-
   const optionsArea = document.getElementById('optionsArea');
   optionsArea.innerHTML = '';
-
   const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-  // 本題的答題紀錄物件
-  reviewLog[currentQuestion] = {
-    question: q.question,
-    correctAnswer: q.answer,
-    wrongAttempts: [],
-    firstTryCorrect: null, // 是否第一次就答對
-    explanation: q.explanation
-  };
-
-  shuffledOptions.forEach((opt) => {
+  reviewLog[currentQuestion] = { question:q.question, correctAnswer:q.answer, wrongAttempts:[], firstTryCorrect:null };
+  shuffledOptions.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
     btn.onclick = () => selectOption(btn, opt);
     optionsArea.appendChild(btn);
   });
+  typesetMath(document.getElementById('questionContainer'));
 }
 
 function selectOption(btn, opt) {
-  if (answered) return;
+  if (answered || btn.disabled) return;
   const prev = document.querySelector('.option-btn[data-selected="true"]');
   if (prev) prev.removeAttribute('data-selected');
-  btn.setAttribute('data-selected', 'true');
+  btn.setAttribute('data-selected','true');
   selectedAnswer = opt;
 }
 
 function submitAnswer() {
   if (answered) return;
-  if (selectedAnswer === null) {
-    alert('請先選擇一個答案');
-    return;
-  }
-
+  if (selectedAnswer === null) { alert('請先選擇一個答案'); return; }
   const q = shuffledQuestions[currentQuestion];
   const isCorrect = selectedAnswer === q.answer;
   const log = reviewLog[currentQuestion];
   const selectedBtn = document.querySelector('.option-btn[data-selected="true"]');
-
   const feedback = document.getElementById('feedback');
   feedback.classList.add('show');
-
   if (isCorrect) {
     answered = true;
     selectedBtn.classList.add('correct');
@@ -521,15 +225,11 @@ function submitAnswer() {
     document.getElementById('correct').textContent = correctCount;
     feedback.classList.add('success');
     feedback.classList.remove('error');
-    feedback.innerHTML = '✓ 正確' + buildExplanationHtml(q.explanation);
-
-    const allBtns = document.querySelectorAll('.option-btn');
-    allBtns.forEach(b => b.disabled = true);
-
+    feedback.textContent = '✓ 正確';
+    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.textContent = currentQuestion === shuffledQuestions.length - 1 ? '查看結果' : '下一題';
     submitBtn.onclick = nextQuestion;
-
     if (log.firstTryCorrect === null) log.firstTryCorrect = true;
   } else {
     selectedBtn.classList.add('incorrect');
@@ -538,21 +238,15 @@ function submitAnswer() {
     feedback.classList.add('error');
     feedback.classList.remove('success');
     feedback.textContent = '✗ 錯誤，再試一次';
-
     log.wrongAttempts.push(selectedAnswer);
     if (log.firstTryCorrect === null) log.firstTryCorrect = false;
-
     selectedAnswer = null;
   }
 }
 
 function nextQuestion() {
   currentQuestion++;
-  if (currentQuestion >= shuffledQuestions.length) {
-    showResults();
-  } else {
-    showQuestion();
-  }
+  if (currentQuestion >= shuffledQuestions.length) showResults(); else showQuestion();
 }
 
 function startTimer() {
@@ -567,15 +261,12 @@ function startTimer() {
 
 function showResults() {
   clearInterval(timerInterval);
-
   const accuracy = Math.round((correctCount / shuffledQuestions.length) * 100);
   document.getElementById('accuracy').textContent = accuracy + '%';
-
   const elapsed = Math.floor((Date.now() - startTime) / 1000);
   const mins = Math.floor(elapsed / 60);
   const secs = elapsed % 60;
   document.getElementById('finalTime').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
-
   document.getElementById('resultOverlay').classList.add('show');
 }
 
@@ -583,63 +274,33 @@ function reviewAnswers() {
   document.getElementById('resultOverlay').classList.remove('show');
   document.getElementById('questionContainer').style.display = 'none';
   document.querySelector('.button-group').style.display = 'none';
-
   const reviewList = document.getElementById('reviewList');
   reviewList.innerHTML = '';
-
   reviewLog.forEach((log, idx) => {
     const item = document.createElement('div');
     item.className = 'review-item ' + (log.firstTryCorrect ? 'correct' : 'incorrect');
-
     const qDiv = document.createElement('div');
     qDiv.className = 'review-question';
     qDiv.textContent = (idx + 1) + '. ' + log.question;
     item.appendChild(qDiv);
-
     if (log.wrongAttempts.length > 0) {
       const wrongRow = document.createElement('div');
       wrongRow.className = 'review-answer-row';
       wrongRow.innerHTML = '<span class="label">你曾答錯：</span><span class="review-your-answer wrong">' + log.wrongAttempts.map(escapeHtml).join('、') + '</span>';
       item.appendChild(wrongRow);
     }
-
     const correctRow = document.createElement('div');
     correctRow.className = 'review-answer-row';
-    correctRow.innerHTML = '<span class="label">正確答案：</span><span class="review-correct-answer">' + escapeHtml(String(log.correctAnswer)) + '</span>';
+    correctRow.innerHTML = '<span class="label">正確答案：</span><span class="review-correct-answer">' + escapeHtml(log.correctAnswer) + '</span>';
     item.appendChild(correctRow);
-
-    const expHtml = buildExplanationHtml(log.explanation);
-    if (expHtml) {
-      const expRow = document.createElement('div');
-      expRow.className = 'review-answer-row review-explanation';
-      expRow.innerHTML = '<span class="label">解析：</span>' + expHtml;
-      item.appendChild(expRow);
-    }
-
     reviewList.appendChild(item);
   });
-
   document.getElementById('reviewContainer').classList.add('show');
-}
-
-function buildExplanationHtml(explanation) {
-  if (!explanation) return '';
-  const text = explanation.text || '';
-  const image = explanation.image || '';
-  if (!text && !image) return '';
-  let html = '';
-  if (text) html += '<span class="explanation">' + escapeHtml(text) + '</span>';
-  if (image) html += '<img class="explanation-image" src="' + escapeHtml(image) + '" alt="解析圖片">';
-  return html;
+  typesetMath(document.getElementById('reviewContainer'));
 }
 
 function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
 initGame();
