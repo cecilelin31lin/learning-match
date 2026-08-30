@@ -95,21 +95,21 @@
     background: #f9f9f9;
   }
   .option-btn[data-selected="true"] {
-    background: #378ADD;
+    background: #B0C4DE;
     color: white;
-    border-color: #378ADD;
+    border-color: #B0C4DE;
   }
   .option-btn.completed {
-    background: #E8F9EF;
-    border-color: #4CAF7D;
-    color: #2B6E4F;
+    background: rgba(70,129,137,.14);
+    border-color: #468189;
+    color: #468189;
     cursor: default;
     opacity: 0.5;
   }
   .option-btn.incorrect {
-    background: #FDE8E8;
-    border-color: #E24B4A;
-    color: #8B2323;
+    background: rgba(232,130,140,.16);
+    border-color: #E8828C;
+    color: #E8828C;
   }
   
   .completed-container {
@@ -122,13 +122,13 @@
   }
   
   .completed-item {
-    background: #E8F9EF;
-    border: 0.5px solid #4CAF7D;
+    background: rgba(70,129,137,.14);
+    border: 0.5px solid #468189;
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #2B6E4F;
+    color: #468189;
     font-weight: 500;
   }
   .completed-item:last-child {
@@ -182,7 +182,7 @@
   .result-stat-value {
     font-size: 24px;
     font-weight: 600;
-    color: #378ADD;
+    color: #B0C4DE;
   }
   
   .result-button-group {
@@ -192,7 +192,7 @@
 
   .result-button {
     flex: 1;
-    background: #378ADD;
+    background: #B0C4DE;
     color: white;
     border: none;
     border-radius: 6px;
@@ -204,16 +204,16 @@
   }
   
   .result-button:hover {
-    background: #2970c7;
+    background: #9AB3D0;
   }
 
   .result-button.secondary {
     background: white;
-    color: #378ADD;
-    border: 1px solid #378ADD;
+    color: #B0C4DE;
+    border: 1px solid #B0C4DE;
   }
   .result-button.secondary:hover {
-    background: #EAF3FC;
+    background: rgba(176,196,222,.25);
   }
 </style>
 </head>
@@ -269,13 +269,18 @@ const shuffleBack = 1;
 
 const pairs = [
   // connector 留空 '' 就不會顯示任何連接詞
-  { front: 'AIBN', connector: '的定義為', back: '偶氮化合物，常見可產生自由基的物質' },
-  { front: 'BHT', connector: '的定義為', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙很大，所以很穩定' },
-  { front: 'BHA', connector: '的定義為', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙大，所以很穩定' },
+  { front: 'AIBN', connector: '是', back: '偶氮化合物，常見可產生自由基的物質' },
+  { front: 'BHT', connector: '是', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙很大，所以很穩定' },
+  { front: 'BHA', connector: '是', back: '人工自由基抑制劑，捕捉自由基後形成的自由基中間物立體障礙大，所以很穩定' },
   { front: 'torsional energy', connector: '的定義為', back: '因為化學鍵重疊得到之斥力造成的能量，可理解為 eclipsed 與 staggered 的能量差異' },
   { front: 'steric strain', connector: '的定義為', back: '因為相鄰C上的基團形成之二面角不同，所形成的能量差異，可理解為 gauch 與 anti 的能量差異' },
   { front: 'dihedral angle', connector: '的定義為', back: '相鄰的兩個原子，各自的一個化學鍵與另一者的化學鍵所形成化的夾角' },
-  { front: 'bond angle', connector: '', back: '相同原子上的化學鍵夾角' },
+  { front: 'bond angle', connector: '的定義為', back: '相同原子上的化學鍵夾角' },
+  { front: 'RDS', connector: '的定義為', back: '反應位能圖上，有最高能量過渡狀態的相對應步驟' },
+  { front: 'NBS', connector: '是', back: 'N-Bromiosuccinimide，可以產生Br₂的物質' },
+
+
+ 
 ];
 
 let selectedFront = null;
