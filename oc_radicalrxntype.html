@@ -75,11 +75,11 @@
   }
   
   .image-btn {
-    width: 80px;
-    height: 80px;
+    width: 130px;
+    height: 130px;
     border: 0.5px solid #ccc;
     border-radius: 6px;
-    padding: 4px;
+    padding: 6px;
     cursor: pointer;
     transition: all 0.2s;
     background: white;
@@ -87,6 +87,10 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
+  }
+  @media (max-width: 480px) {
+    .image-btn { width: 100px; height: 100px; }
   }
   .image-btn:hover {
     border-color: #999;
@@ -95,11 +99,32 @@
   .image-btn img {
     max-width: 100%;
     max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
+    pointer-events: none;
   }
   .image-btn[data-selected="true"] {
     border: 2px solid #B0C4DE;
-    box-shadow: 0 0 0 2px rgba(176, 196, 222, 0.25);
+    box-shadow: 0 0 0 2px rgba(176, 196, 222, 0.35);
+  }
+
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 24px;
+  }
+  .lightbox-overlay.show { display: flex; }
+  .lightbox-overlay img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
   }
   
   .sentences {
@@ -126,23 +151,23 @@
     background: #f9f9f9;
   }
   .sentence-btn[data-selected="true"] {
-    background: rgba(176,196,222,.30);
-    border-color: #B0C4DE;
-    color: #2B3A55;
+    background: #FFF4E6;
+    border-color: #D9860E;
+    color: #D9860E;
     font-weight: 500;
   }
   
   .sentence-btn.correct {
-    background: rgba(70,129,137,.14);
-    border-color: #468189;
-    color: #468189;
+    background: #E8F9EF;
+    border-color: #4CAF7D;
+    color: #2B6E4F;
     cursor: default;
   }
   
   .sentence-btn.incorrect {
-    background: rgba(232,130,140,.16);
-    border-color: #E8828C;
-    color: #E8828C;
+    background: #FDE8E8;
+    border-color: #E24B4A;
+    color: #8B2323;
   }
 
   .review-container {
@@ -165,15 +190,15 @@
   }
   .back-btn {
     background: white;
-    color: #B0C4DE;
-    border: 1px solid #B0C4DE;
+    color: #378ADD;
+    border: 1px solid #378ADD;
     border-radius: 6px;
     padding: 8px 16px;
     font-size: 13px;
     cursor: pointer;
   }
   .back-btn:hover {
-    background: rgba(176,196,222,.25);
+    background: #EAF3FC;
   }
 
   .review-row {
@@ -248,7 +273,7 @@
   .result-stat-value {
     font-size: 24px;
     font-weight: 600;
-    color: #B0C4DE;
+    color: #378ADD;
   }
 
   .result-button-group {
@@ -258,7 +283,7 @@
   
   .result-button {
     flex: 1;
-    background: #B0C4DE;
+    background: #378ADD;
     color: white;
     border: none;
     border-radius: 6px;
@@ -270,16 +295,16 @@
   }
   
   .result-button:hover {
-    background: #9AB3D0;
+    background: #2970c7;
   }
 
   .result-button.secondary {
     background: white;
-    color: #B0C4DE;
-    border: 1px solid #B0C4DE;
+    color: #378ADD;
+    border: 1px solid #378ADD;
   }
   .result-button.secondary:hover {
-    background: rgba(176,196,222,.25);
+    background: #EAF3FC;
   }
 </style>
 </head>
@@ -299,9 +324,13 @@
     </div>
   </div>
 
-  <div class="instruction" id="instructionText">選擇一張圖片，然後點擊對應的句子</div>
+  <div class="instruction" id="instructionText">選擇一張圖片，然後點擊對應的句子（長按圖片可放大檢視）</div>
 
   <div class="image-buttons" id="imageButtonsContainer"></div>
+
+  <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="放大檢視">
+  </div>
 
   <div class="sentences" id="sentencesContainer"></div>
 
@@ -334,6 +363,7 @@
 // shuffleSentences: 1 = 打亂句子順序，0 = 依照原本順序（不打亂）
 const shuffleSentences = 1;
 
+
 const pairs = [
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/coupling.png', sentence: 'Coupling：兩個自由基結合，形成一個新的鍵。' },
   { image: 'https://raw.githubusercontent.com/cecilelin31lin/pic/main/disproportional.png', sentence: 'Disproportionation：兩個自由基反應，一個自由基取得H，另一個失去H，形成飽和與不飽和產物。' },
@@ -360,7 +390,14 @@ function initGame() {
     btn.className = 'image-btn';
     btn.dataset.index = idx;
     btn.innerHTML = '<img src="' + item.image + '" alt="image">';
-    btn.onclick = () => selectImage(btn, idx);
+    btn.onclick = () => {
+      if (btn.dataset.longPressed === 'true') {
+        btn.dataset.longPressed = 'false';
+        return;
+      }
+      selectImage(btn, idx);
+    };
+    attachLongPress(btn, item.image);
     imageButtonsContainer.appendChild(btn);
   });
   
@@ -375,6 +412,37 @@ function initGame() {
   });
   
   startTimer();
+}
+
+function attachLongPress(btn, imageSrc) {
+  let pressTimer = null;
+  const LONG_PRESS_MS = 500;
+
+  const start = (e) => {
+    pressTimer = setTimeout(() => {
+      btn.dataset.longPressed = 'true';
+      openLightbox(imageSrc);
+    }, LONG_PRESS_MS);
+  };
+  const cancel = () => {
+    clearTimeout(pressTimer);
+  };
+
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('mouseup', cancel);
+  btn.addEventListener('mouseleave', cancel);
+  btn.addEventListener('touchstart', start, { passive: true });
+  btn.addEventListener('touchend', cancel);
+  btn.addEventListener('touchmove', cancel);
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightboxOverlay').classList.add('show');
+}
+
+function closeLightbox() {
+  document.getElementById('lightboxOverlay').classList.remove('show');
 }
 
 function selectImage(btn, idx) {
