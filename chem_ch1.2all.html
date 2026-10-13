@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>普化第一章</title>
+<title>普化第一、二章</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -340,7 +340,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>普化第一章</h1>
+  <h1>普化第一、二章</h1>
   <p class="subtitle">完成所有題目</p>
 
   <div class="stats">
@@ -413,7 +413,13 @@
 <script>
 const allQuestions = [
   { type: 3, question: '比較共價化合物的沸點時，若兩分子分子式相同，直鏈分子的沸點會_____支鏈分子的沸點，因為_____。', answer: '高於；直鏈分子的表面接觸面積較大，London dispersion forces 較強', options: ['高於；直鏈分子的表面接觸面積較大，London dispersion forces 較強', '低於；直鏈分子的表面接觸面積較小，London dispersion forces 較弱', '高於；直鏈分子具有較強的 hydrogen bond', '低於；支鏈分子的表面接觸面積較大，London dispersion forces 較強'], explanation: { text: '若分子式相同且主要比較 London dispersion forces，直鏈分子的表面接觸面積通常較大，使分子間的 London dispersion forces 較強，因此直鏈異構物的沸點通常高於支鏈異構物。', image: '' } },
-];
+  { type: 3, question: '將金屬或金屬鹽類放在火焰中灼燒，使其放出介於可見光譜內的光，這種過程稱為什麼？', answer: '焰色試驗（Flame test）', options: ['沉澱試驗（Precipitation test）', '焰色試驗（Flame test）', '酸鹼中和（Acid–base neutralization）', '氧化還原滴定（Redox titration）'], explanation: { text: '焰色試驗（Flame test）是將金屬或金屬鹽類置於火焰中加熱，觀察其發出的特徵顏色，以協助辨識金屬元素。', image: '' } },
+  { type: 3, question: '下列何者是物質波的公式？',options:['λ = \\frac{h}{p}','E = mc^2','c = fλ','E = hf'],answer:'λ = \\frac{h}{p}',explanation:{text:'物質波（Matter wave）的德布羅意波長公式為 λ = h/p，其中 λ 為波長（wavelength）、h 為普朗克常數（Planck constant）、p 為動量（momentum）。',image:''}}
+  { type: 3, question: '氫原子中的電子從較高能階躍遷至基態 n = 1 時，所形成的譜線屬於哪一系列？', answer: '萊曼系列（Lyman series）', options: ['萊曼系列（Lyman series）', '巴耳末系列（Balmer series）', '帕邢系列（Paschen series）', '布拉克系列（Brackett series）'], explanation: { text: '電子從較高能階躍遷至 n = 1 時，形成萊曼系列（Lyman series）。各系列依據電子躍遷的終止能階分類：n = 1 為 Lyman series，n = 2 為 Balmer series，n = 3 為 Paschen series，n = 4 為 Brackett series。', image: '' } },
+  { type: 3, question: '氫原子中的電子從較高能階躍遷至 n = 2 時，所形成的譜線屬於哪一系列？', answer: '巴耳末系列（Balmer series）', options: ['萊曼系列（Lyman series）', '巴耳末系列（Balmer series）', '帕邢系列（Paschen series）', '布拉克系列（Brackett series）'], explanation: { text: '電子從較高能階躍遷至 n = 2 時，形成巴耳末系列（Balmer series）。此系列的譜線大多位於可見光範圍，但也包含紫外線範圍的譜線。', image: '' } },
+  { type: 3, question: '氫原子中的電子從較高能階躍遷至基態n = 1 時，所釋放的光主要屬於哪一種？', answer: '紫外光（Ultraviolet light）', options: ['紫外光（Ultraviolet light）', '可見光（Visible light）', '紅外光（Infrared light）', '微波（Microwave）'], explanation: { text: '電子躍遷至 n = 1 所形成的萊曼系列（Lyman series）位於紫外光（Ultraviolet light）範圍。', image: '' } },
+  { type: 3, question: '氫原子中的電子從較高能階躍遷至 n = 2 時，所釋放的光主要屬於哪一種？', answer: '可見光（Visible light）', options: ['紫外光（Ultraviolet light）', '可見光（Visible light）', '紅外光（Infrared light）', '微波（Microwave）'], explanation: { text: '電子躍遷至 n = 2 所形成的巴耳末系列（Balmer series），其譜線大多位於可見光範圍，因此主要對應可見光（Visible light）。', image: '' } },
+ ];
 
 /*
 const allQuestions = [
